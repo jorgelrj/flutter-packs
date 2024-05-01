@@ -285,6 +285,8 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
           [(widget.handler as AppSingleItemHandler<T>).initialValue].whereNotNull().toList(),
         (AppMultipleItemsHandler<T>()) => (widget.handler as AppMultipleItemsHandler<T>).initialValue,
       };
+
+      _setTextValue();
     }
   }
 
