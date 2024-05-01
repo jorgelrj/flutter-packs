@@ -1,8 +1,9 @@
 import 'dart:async';
 
+import 'package:equatable/equatable.dart';
 import 'package:extensions_pack/extensions_pack.dart';
 
-sealed class AppItemsHandler<T> {
+sealed class AppItemsHandler<T> extends Equatable {
   final bool Function(T, T)? compareItems;
   final String Function(T)? itemAsString;
 
@@ -16,6 +17,9 @@ sealed class AppItemsHandler<T> {
   bool compare(T a, T b) => compareItems?.call(a, b) ?? a == b;
 
   String asString(T item) => itemAsString?.call(item) ?? item.toString();
+
+  @override
+  List<Object?> get props => [];
 }
 
 class AppSingleItemHandler<T> extends AppItemsHandler<T> {
@@ -31,6 +35,9 @@ class AppSingleItemHandler<T> extends AppItemsHandler<T> {
 
   @override
   FutureOr<void> onListChanged(List<T> list) => onChanged(list.firstOrNull);
+
+  @override
+  List<Object?> get props => [initialValue];
 }
 
 class AppMultipleItemsHandler<T> extends AppItemsHandler<T> {
@@ -46,4 +53,7 @@ class AppMultipleItemsHandler<T> extends AppItemsHandler<T> {
 
   @override
   FutureOr<void> onListChanged(List<T> list) => onChanged(list);
+
+  @override
+  List<Object?> get props => [initialValue];
 }
