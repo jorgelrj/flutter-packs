@@ -1,0 +1,33 @@
+name: flutter_packs
+
+ide:
+  intellij:
+    enabled: false
+
+packages:
+  - dart_http_client
+  - extensions_pack
+  - widgets_pack
+
+command:
+  bootstrap:
+    usePubspecOverrides: true
+    runPubGetInParallel: true
+
+  clean:
+    hooks:
+      post: melos exec "flutter clean"
+
+  version:
+    hooks:
+      preCommit: melos bs && git add .
+
+scripts:
+  reset:
+    run: melos clean && melos bootstrap
+
+  analyze:
+    run: flutter analyze . --no-fatal-warnings
+    exec:
+      concurrency: 5
+      failFast: true
