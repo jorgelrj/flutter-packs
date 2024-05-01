@@ -89,10 +89,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     _setLoading(false);
 
     _filteredItemsNotifier.value = _itemNotifier.value.where((item) {
-      return switch (widget.handler) {
-        (AppSingleItemHandler<T>()) => widget.handler.asString(item).toLowerCase().contains(search.toLowerCase()),
-        (AppMultipleItemsHandler<T>()) => true,
-      };
+      return widget.handler.asString(item).toLowerCase().contains(search.toLowerCase());
     }).toList();
   }
 
@@ -141,7 +138,10 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   void _textFocusNodeListener() {
     if (mounted) {
       if (_textFocusNode.hasFocus) {
-        if (_overlayEntry != null) Overlay.maybeOf(context)?.insert(_overlayEntry!);
+        if (_overlayEntry != null) {
+          _textController.clear();
+          Overlay.maybeOf(context)?.insert(_overlayEntry!);
+        }
       } else {
         _overlayEntry?.remove();
 
@@ -165,7 +165,10 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     }
 
     _hasItemsNotifier.value = _selectedItemNotifier.value.isNotEmpty;
-    _setTextValue();
+
+    if (!_hasItemsNotifier.value) {
+      _setTextValue();
+    }
   }
 
   void _afterLayout() {
