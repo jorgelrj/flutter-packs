@@ -51,7 +51,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   final _textController = TextEditingController();
   final _textFocusNode = FocusNode();
   final _searchDebouncer = Debouncer(
-    duration: const Duration(milliseconds: 500),
+    duration: const Duration(milliseconds: 350),
   );
 
   final _itemNotifier = ValueNotifier<List<T>>([]);
@@ -286,7 +286,9 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
         (AppMultipleItemsHandler<T>()) => (widget.handler as AppMultipleItemsHandler<T>).initialValue,
       };
 
-      _setTextValue();
+      if (!_textFocusNode.hasFocus) {
+        _setTextValue();
+      }
     }
   }
 

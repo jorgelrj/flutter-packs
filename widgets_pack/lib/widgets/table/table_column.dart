@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:extensions_pack/extensions_pack.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:widgets_pack/widgets/fields/fields.dart';
 import 'package:widgets_pack/widgets/table/table.dart';
@@ -225,11 +226,13 @@ class DateColumn<M extends Object> extends TableColumn<M> {
 class EditableTextColumn<M extends Object> extends TableColumn<M> {
   final String? Function(M model) value;
   final FutureOr<M?> Function(M model, String value) onChanged;
+  final List<TextInputFormatter>? inputFormatters;
 
   const EditableTextColumn({
     required super.label,
     required this.value,
     required this.onChanged,
+    this.inputFormatters,
     super.width,
     super.contentPadding,
     super.decoration,
@@ -250,6 +253,7 @@ class EditableTextColumn<M extends Object> extends TableColumn<M> {
       debounceTime: const Duration(milliseconds: 500),
       initialValue: textValue,
       contentPadding: EdgeInsets.zero,
+      inputFormatters: inputFormatters,
       showLoader: true,
       onChanged: (value) async {
         final newModel = await onChanged(model, value);

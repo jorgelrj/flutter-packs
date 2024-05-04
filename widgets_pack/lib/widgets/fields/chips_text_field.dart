@@ -75,6 +75,7 @@ abstract class AppChipsTextField<T> extends StatefulWidget {
 
 abstract class _AppChipsTextFieldState<T> extends State<AppChipsTextField<T>> {
   late final _chipItemsNotifier = ValueNotifier<List<T>>(widget.initialItems);
+  final _errorNotifier = ValueNotifier<String?>(null);
 
   final _widgetKey = GlobalKey();
   final _textController = TextEditingController();
@@ -126,6 +127,7 @@ abstract class _AppChipsTextFieldState<T> extends State<AppChipsTextField<T>> {
   void dispose() {
     _textController.dispose();
     _textFocusNode.dispose();
+    _errorNotifier.dispose();
     _onDispose();
 
     super.dispose();
@@ -151,70 +153,92 @@ abstract class _AppChipsTextFieldState<T> extends State<AppChipsTextField<T>> {
             widget.onDisabledTap?.call();
           }
         },
-        child: Container(
-          key: _widgetKey,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(kXXSSize),
-            ),
-            color: context.wpColorsConfig.surfaceContainerHighest,
-            border: Border(
-              bottom: BorderSide(
-                color: context.colorScheme.onSurfaceVariant,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Container(
+                key: _widgetKey,
+                width: double.infinity,
+                constraints: const BoxConstraints(maxHeight: 200),
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(kXXSSize),
+                  ),
+                  color: context.wpColorsConfig.surfaceContainerHighest,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: context.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.zero,
+                  child: ValueListenableBuilder<List<T>>(
+                    valueListenable: _chipItemsNotifier,
+                    builder: (context, items, child) {
+                      final hasItems = items.isNotEmpty;
+
+                      return Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          ...items.map(
+                            (item) {
+                              return AppChip(
+                                label: item.toString(),
+                                onDelete: () {
+                                  _handleItem(item);
+                                  _textFocusNode.requestFocus();
+                                },
+                                selected: true,
+                                borderRadius: BorderRadius.circular(25),
+                                backgroundColor: context.colorScheme.onSecondaryContainer,
+                                onBackgroundColor: context.colorScheme.secondaryContainer,
+                                checkIcon: Icons.check_circle,
+                              );
+                            },
+                          ),
+                          IntrinsicWidth(
+                            child: Container(
+                              padding: _inputPadding,
+                              constraints: BoxConstraints(
+                                minWidth: hasItems ? 0 : 350,
+                              ),
+                              child: AppTextFormField(
+                                enabled: _enabled,
+                                focusNode: _textFocusNode,
+                                controller: _textController,
+                                labelText: !hasItems ? widget.labelText : null,
+                                hintText: !hasItems ? widget.hintText : null,
+                                maxLines: null,
+                                border: border,
+                                inputFormatters: widget.inputFormatters,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
-          ),
-          child: SingleChildScrollView(
-            padding: EdgeInsets.zero,
-            child: ValueListenableBuilder<List<T>>(
-              valueListenable: _chipItemsNotifier,
-              builder: (context, items, child) {
-                final hasItems = items.isNotEmpty;
+            ValueListenableBuilder<String?>(
+              valueListenable: _errorNotifier,
+              builder: (context, error, child) {
+                if (error == null) {
+                  return const SizedBox();
+                }
 
-                return Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 8,
-                  children: [
-                    ...items.map(
-                      (item) {
-                        return AppChip(
-                          label: item.toString(),
-                          onDelete: () {
-                            _handleItem(item);
-                            _textFocusNode.requestFocus();
-                          },
-                          selected: true,
-                          borderRadius: BorderRadius.circular(25),
-                          backgroundColor: context.colorScheme.onSecondaryContainer,
-                          onBackgroundColor: context.colorScheme.secondaryContainer,
-                          checkIcon: Icons.check_circle,
-                        );
-                      },
-                    ),
-                    IntrinsicWidth(
-                      child: Container(
-                        padding: _inputPadding,
-                        constraints: BoxConstraints(
-                          minWidth: hasItems ? 0 : 350,
-                        ),
-                        child: AppTextFormField(
-                          enabled: _enabled,
-                          focusNode: _textFocusNode,
-                          controller: _textController,
-                          labelText: !hasItems ? widget.labelText : null,
-                          hintText: !hasItems ? widget.hintText : null,
-                          maxLines: null,
-                          border: border,
-                          inputFormatters: widget.inputFormatters,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
+                return BodySmall(
+                  error,
+                ).color(context.colorScheme.error);
               },
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -264,6 +288,7 @@ class _TextOnlyContentState extends _AppChipsTextFieldState<String> {
 
   @override
   void _textControllerListener() {
+    _errorNotifier.value = null;
     final text = _textController.text;
 
     final shouldAddChips = text.contains(RegExp(r'[,\n]'));
@@ -278,6 +303,8 @@ class _TextOnlyContentState extends _AppChipsTextFieldState<String> {
 
       if (error == null) {
         _handleItem(chip);
+      } else {
+        _errorNotifier.value = error;
       }
     }
 
@@ -309,21 +336,34 @@ class _TextOnlyContentState extends _AppChipsTextFieldState<String> {
 
                   return hasText ? child! : const SizedBox();
                 },
-                child: Padding(
-                  padding: const EdgeInsets.all(kXXSSize),
-                  child: AppButton.icon(
-                    tooltip: 'Click enter/comma to add',
-                    onPressed: () {
-                      _handleItem(_textController.text);
-                      _textFocusNode.requestFocus();
-                    },
-                    fillColor: context.colorScheme.secondaryContainer,
-                    icon: Icon(
-                      Icons.send,
-                      size: 24,
-                      color: context.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                child: ValueListenableBuilder<String?>(
+                  valueListenable: _errorNotifier,
+                  builder: (context, error, child) {
+                    final hasError = error != null;
+
+                    return Padding(
+                      padding: DimensionUtils(4).all.xxs + (hasError ? kSpacer.bottom.xs : kSpacer.all.none),
+                      child: AppButton.icon(
+                        tooltip: 'Click enter/comma to add',
+                        onPressed: () {
+                          final error = widget.validator?.call(_textController.text);
+
+                          if (error == null) {
+                            _handleItem(_textController.text);
+                            _textFocusNode.requestFocus();
+                          } else {
+                            _errorNotifier.value = error;
+                          }
+                        },
+                        fillColor: context.colorScheme.secondaryContainer,
+                        icon: Icon(
+                          Icons.send,
+                          size: 24,
+                          color: context.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
