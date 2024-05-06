@@ -6,6 +6,8 @@ class AppChip extends StatelessWidget {
   final String label;
   final String? tooltip;
   final VoidCallback? onTap;
+  final VoidCallback? onDoubleTap;
+  final VoidCallback? onSecondaryTap;
   final VoidCallback? onDelete;
   final bool selected;
   final Color? backgroundColor;
@@ -23,6 +25,8 @@ class AppChip extends StatelessWidget {
     required this.label,
     this.tooltip,
     this.onTap,
+    this.onDoubleTap,
+    this.onSecondaryTap,
     this.onDelete,
     this.selected = false,
     this.padding = const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
@@ -86,6 +90,8 @@ class AppChip extends StatelessWidget {
         message: tooltip ?? '',
         child: InkWell(
           onTap: onTap,
+          onDoubleTap: onDoubleTap,
+          onSecondaryTap: onSecondaryTap,
           borderRadius: borderRadius,
           hoverColor: Colors.transparent,
           child: AppHoveringNotifier(
