@@ -9,6 +9,8 @@ class AppDaysPicker extends StatefulWidget {
   final DateTime lastDate;
   final bool Function(DateTime)? selectableDatePredicate;
   final ValueChanged<DateTime>? onDateChanged;
+  final String? Function(DateTime)? tooltipBuilder;
+  final bool enabled;
 
   const AppDaysPicker({
     required this.handler,
@@ -16,6 +18,8 @@ class AppDaysPicker extends StatefulWidget {
     required this.lastDate,
     this.selectableDatePredicate,
     this.onDateChanged,
+    this.tooltipBuilder,
+    this.enabled = true,
     super.key,
   });
 
@@ -34,6 +38,10 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
   }
 
   void _onChangeDate(DateTime date) {
+    if (!widget.enabled) {
+      return;
+    }
+
     final selectedDates = _datesNotifier.value;
     final isSelected = selectedDates.any((d) => d.isSameDayAs(date));
 
@@ -202,23 +210,30 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
                     child: ValueListenableBuilder<Iterable<DateTime>>(
                       valueListenable: _datesNotifier,
                       builder: (context, selectedDates, child) {
+                        final tooltip = widget.tooltipBuilder?.call(date);
                         final data = _dateData(date);
 
                         return InkWell(
                           key: ValueKey(date),
                           onTap: () => _onChangeDate(date),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: data.borderColor),
-                              color: data.backgroundColor,
-                            ),
-                            child: Center(
-                              child: BodyLarge(
-                                date.day.toString(),
-                              ).color(data.textColor),
+                          child: TooltipVisibility(
+                            visible: tooltip.isNotBlank,
+                            child: Tooltip(
+                              message: tooltip ?? '',
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: data.borderColor),
+                                  color: data.backgroundColor,
+                                ),
+                                child: Center(
+                                  child: BodyLarge(
+                                    date.day.toString(),
+                                  ).color(data.textColor),
+                                ),
+                              ),
                             ),
                           ),
                         );
