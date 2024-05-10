@@ -90,4 +90,34 @@ class MonthAndYear extends Equatable {
       year: year ?? this.year,
     );
   }
+
+  DateTime toDateTime() => DateTime.utc(year, month);
+
+  MonthAndYear previousMonth() {
+    if (month == 1) {
+      return MonthAndYear(
+        month: 12,
+        year: year - 1,
+      );
+    }
+
+    return MonthAndYear(
+      month: month - 1,
+      year: year,
+    );
+  }
+
+  MonthAndYear nextMonth() {
+    if (month == 12) {
+      return MonthAndYear(
+        month: 1,
+        year: year + 1,
+      );
+    }
+
+    return MonthAndYear(
+      month: month + 1,
+      year: year,
+    );
+  }
 }

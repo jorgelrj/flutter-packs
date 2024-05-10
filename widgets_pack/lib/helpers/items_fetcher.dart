@@ -1,4 +1,6 @@
-sealed class AppItemsFetcher<T> {
+import 'package:equatable/equatable.dart';
+
+sealed class AppItemsFetcher<T> extends Equatable {
   const AppItemsFetcher();
 }
 
@@ -8,6 +10,9 @@ class AppLocalItemsFetcher<T> extends AppItemsFetcher<T> {
   const AppLocalItemsFetcher(
     this.items,
   );
+
+  @override
+  List<Object?> get props => [items];
 }
 
 abstract class AppRemoteItemsFetcher<T> extends AppItemsFetcher<T> {
@@ -20,14 +25,18 @@ class AppRemoteListItemsFetcher<T> extends AppRemoteItemsFetcher<T> {
   const AppRemoteListItemsFetcher(
     this.getItems,
   );
+
+  @override
+  List<Object?> get props => [getItems];
 }
 
 class AppRemoteSearchListItemsFetcher<T> extends AppRemoteItemsFetcher<T> {
   final Future<List<T>> Function(String search) getItems;
-  final String? searchHint;
 
   const AppRemoteSearchListItemsFetcher(
-    this.getItems, {
-    this.searchHint,
-  });
+    this.getItems,
+  );
+
+  @override
+  List<Object?> get props => [getItems];
 }

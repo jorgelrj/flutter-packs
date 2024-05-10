@@ -2,7 +2,7 @@ library extensions_pack;
 
 export 'package:collection/collection.dart';
 
-export 'src/extensions/index.dart';
+export 'src/extensions/extensions.dart';
 export 'src/formatters/formatters.dart';
 export 'src/types/types.dart';
 export 'src/utils/index.dart';

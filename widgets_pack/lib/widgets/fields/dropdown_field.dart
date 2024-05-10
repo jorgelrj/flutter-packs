@@ -16,6 +16,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final bool showTrailing;
   final AppTextFormFieldErrorType errorType;
   final Widget Function(T item, bool selected, VoidCallback onTap)? tileBuilder;
+  final bool enabled;
 
   const AppDropDownFormField({
     required this.fetcher,
@@ -29,6 +30,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
     this.showTrailing = true,
     this.errorType = AppTextFormFieldErrorType.string,
     this.tileBuilder,
+    this.enabled = true,
     super.key,
   });
 
@@ -39,12 +41,12 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
 class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormField<T>> {
   final _widgetKey = GlobalKey();
 
-  RenderBox get _renderBox {
-    return _widgetKey.currentContext!.findRenderObject()! as RenderBox;
+  RenderBox? get _renderBox {
+    return _widgetKey.currentContext?.findRenderObject() as RenderBox?;
   }
 
-  Size get _widgetSize {
-    return _renderBox.size;
+  Size? get _widgetSize {
+    return _renderBox?.size;
   }
 
   final _layerLink = LayerLink();
@@ -70,23 +72,19 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
 
   bool _loadedAll = false;
   bool _loading = false;
+  String? _lastSearch;
 
   OverlayEntry? _overlayEntry;
 
   Future<void> _search(String search) async {
-    if (_loading) {
-      return;
-    }
-
-    _setLoading(true);
+    _lastSearch = search;
 
     await switch (widget.fetcher) {
       (AppRemoteListItemsFetcher<T>()) => _remoteListFetcher(search),
       (AppLocalItemsFetcher<T>()) => _localListFetcher(search),
-      (_) => throw UnimplementedError(),
+      (AppRemoteSearchListItemsFetcher<T>()) => _remoteSearchFetcher(search),
+      (_) => throw UnimplementedError('Fetcher not implemented'),
     };
-
-    _setLoading(false);
 
     _filteredItemsNotifier.value = _itemNotifier.value.where((item) {
       return widget.handler.asString(item).toLowerCase().contains(search.toLowerCase());
@@ -99,7 +97,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     }
 
     final fetcher = widget.fetcher as AppLocalItemsFetcher<T>;
-    final items = await fetcher.items;
+    final items = fetcher.items;
 
     setState(() => _loadedAll = true);
 
@@ -107,14 +105,37 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   }
 
   Future<void> _remoteListFetcher(String search) async {
-    if (_loadedAll) {
+    if (_loadedAll || _loading) {
       return;
     }
+
+    _setLoading(true);
 
     final fetcher = widget.fetcher as AppRemoteListItemsFetcher<T>;
     final items = await fetcher.getItems();
 
-    setState(() => _loadedAll = true);
+    setState(() {
+      _loadedAll = true;
+      _loading = false;
+    });
+
+    _itemNotifier.value = items;
+  }
+
+  Future<void> _remoteSearchFetcher(String search) async {
+    _filteredItemsNotifier.value = <T>[];
+    _itemNotifier.value = <T>[];
+
+    _setLoading(true);
+
+    final fetcher = widget.fetcher as AppRemoteSearchListItemsFetcher<T>;
+    final items = await fetcher.getItems(search);
+
+    if (search != _lastSearch) {
+      return;
+    }
+
+    _setLoading(false);
 
     _itemNotifier.value = items;
   }
@@ -174,22 +195,26 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   void _afterLayout() {
     _setTextValue();
 
+    if (_renderBox == null) {
+      return;
+    }
+
     _overlayEntry ??= OverlayEntry(
       maintainState: true,
       canSizeOverlay: true,
       builder: (context) {
         const maxHeight = 200.0;
-        final widgetPosition = _renderBox.localToGlobal(Offset.zero);
-        final availableSpace = MediaQuery.of(context).size.height - widgetPosition.dy - _widgetSize.height;
+        final widgetPosition = _renderBox!.localToGlobal(Offset.zero);
+        final availableSpace = MediaQuery.of(context).size.height - widgetPosition.dy - _widgetSize!.height;
 
         final openAbove = availableSpace < 128;
 
         return Positioned(
-          width: _widgetSize.width,
+          width: _widgetSize!.width,
           child: CompositedTransformFollower(
             link: _layerLink,
             targetAnchor: openAbove ? Alignment.topLeft : Alignment.bottomLeft,
-            offset: Offset(0, openAbove ? -_widgetSize.height : 0),
+            offset: Offset(0, openAbove ? -_widgetSize!.height : 0),
             showWhenUnlinked: false,
             child: Material(
               type: MaterialType.transparency,
@@ -279,10 +304,16 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   void didUpdateWidget(covariant AppDropDownFormField<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    if (oldWidget.fetcher != widget.fetcher) {
+      _loadedAll = false;
+      _itemNotifier.value = <T>[];
+    }
+
     if (oldWidget.handler != widget.handler) {
       _selectedItemNotifier.value = switch (widget.handler) {
-        (AppSingleItemHandler<T>()) =>
-          [(widget.handler as AppSingleItemHandler<T>).initialValue].whereNotNull().toList(),
+        (AppSingleItemHandler<T>()) => [
+            (widget.handler as AppSingleItemHandler<T>).initialValue,
+          ].whereNotNull().toList(),
         (AppMultipleItemsHandler<T>()) => (widget.handler as AppMultipleItemsHandler<T>).initialValue,
       };
 
@@ -361,12 +392,14 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
 
                             return switch (widget.handler) {
                               (AppSingleItemHandler<T>()) => ListTile(
+                                  key: ObjectKey(item),
                                   title: textWg,
                                   onTap: onTapItem,
                                   contentPadding: padding,
                                   selected: selected,
                                 ),
                               (AppMultipleItemsHandler<T>()) => CheckboxListTile(
+                                  key: ObjectKey(item),
                                   title: textWg,
                                   value: selected,
                                   onChanged: (_) => onTapItem(),
@@ -396,6 +429,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
         valueListenable: _hasItemsNotifier,
         builder: (context, hasItems, child) {
           return AppTextFormField(
+            enabled: widget.enabled,
             controller: _textController,
             focusNode: _textFocusNode,
             key: _widgetKey,
