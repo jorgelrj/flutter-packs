@@ -55,4 +55,6 @@ class TableController<M extends Object> {
       item,
     );
   }
+
+  void addOrRemove(M item) => dataSource.addOrRemoveItem(item);
 }

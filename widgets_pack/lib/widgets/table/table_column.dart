@@ -8,11 +8,17 @@ import 'package:intl/intl.dart';
 import 'package:widgets_pack/widgets/fields/fields.dart';
 import 'package:widgets_pack/widgets/table/table.dart';
 
+enum ColumnFixedPosition {
+  none,
+  left,
+  right,
+}
+
 sealed class TableColumn<M extends Object> extends Equatable {
   final Widget label;
   final bool numeric;
   final double width;
-  final bool fixed;
+  final ColumnFixedPosition fixedPosition;
   final EdgeInsets contentPadding;
   final Decoration? decoration;
   final String nullValuePlaceholder;
@@ -21,18 +27,20 @@ sealed class TableColumn<M extends Object> extends Equatable {
     required this.label,
     this.numeric = false,
     this.width = 350,
-    this.fixed = false,
+    this.fixedPosition = ColumnFixedPosition.none,
     this.contentPadding = const EdgeInsets.symmetric(horizontal: kXSSize),
     this.decoration,
     this.nullValuePlaceholder = '-',
   });
+
+  bool get fixed => fixedPosition != ColumnFixedPosition.none;
 
   @override
   List<Object?> get props => [
         label,
         numeric,
         width,
-        fixed,
+        fixedPosition,
         contentPadding,
         decoration,
         nullValuePlaceholder,
@@ -90,7 +98,7 @@ class TextColumn<M extends Object> extends TableColumn<M> {
     this.maxLines,
     super.numeric,
     super.width,
-    super.fixed,
+    super.fixedPosition,
     super.contentPadding,
     super.decoration,
     super.nullValuePlaceholder,
@@ -127,7 +135,7 @@ class NumberColumn<M extends Object> extends TableColumn<M> {
     required super.label,
     required this.value,
     super.width = 100,
-    super.fixed,
+    super.fixedPosition,
     super.contentPadding,
     super.decoration,
     super.nullValuePlaceholder,
@@ -164,7 +172,7 @@ class WidgetColumn<M extends Object> extends TableColumn<M> {
     required this.builder,
     super.numeric,
     super.width,
-    super.fixed,
+    super.fixedPosition,
     super.contentPadding,
     super.decoration,
   });
@@ -195,7 +203,7 @@ class DateColumn<M extends Object> extends TableColumn<M> {
     required super.label,
     this.dateFormat = 'dd/MM/yyyy',
     super.width = 180,
-    super.fixed,
+    super.fixedPosition,
     super.contentPadding,
     super.decoration,
     super.nullValuePlaceholder,

@@ -1,3 +1,5 @@
+import 'package:extensions_pack/extensions_pack.dart';
+
 extension NullIterableExtension<T> on Iterable<T>? {
   bool get isBlank => this == null || this!.isEmpty;
   bool get isNotBlank => !isBlank;
@@ -26,5 +28,13 @@ extension NullIterableExtension<T> on Iterable<T>? {
       skip += chunkSize;
       if (chunk.length < chunkSize) return;
     }
+  }
+}
+
+extension IterableEPExtension<T> on Iterable<T?> {
+  Iterable<T> whereTruthy() {
+    final values = where((e) => e.truthy);
+
+    return values.cast<T>();
   }
 }

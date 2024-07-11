@@ -1,6 +1,6 @@
 name: widgets_pack
 description: Widgets collection for flutter applications
-version: 0.1.6
+version: 0.2.9
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -8,11 +8,12 @@ environment:
 
 dependencies:
   equatable: ^2.0.5
-  extensions_pack: ^2.2.3
+  extensions_pack: ^2.2.6
+#  extensions_pack: { path: ../extensions_pack }
   flutter: { sdk: flutter }
   flutter_spinkit: ^5.2.1
-  intl: ^0.18.1
-  pod_player: ^0.2.1
+  intl: ^0.19.0
+  pod_player: ^0.2.2
   rxdart: ^0.27.7
   sticky_headers: ^0.3.0+2
   youtube_player_iframe: ^5.1.2

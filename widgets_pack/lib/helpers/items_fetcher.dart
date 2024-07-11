@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:equatable/equatable.dart';
 
 sealed class AppItemsFetcher<T> extends Equatable {
@@ -33,10 +35,13 @@ class AppRemoteListItemsFetcher<T> extends AppRemoteItemsFetcher<T> {
 class AppRemoteSearchListItemsFetcher<T> extends AppRemoteItemsFetcher<T> {
   final Future<List<T>> Function(String search) getItems;
 
-  const AppRemoteSearchListItemsFetcher(
-    this.getItems,
-  );
+  final String _valueKey;
+
+  AppRemoteSearchListItemsFetcher(
+    this.getItems, {
+    String? valueKey,
+  }) : _valueKey = valueKey ?? math.Random().nextDouble().toString();
 
   @override
-  List<Object?> get props => [getItems];
+  List<Object?> get props => [_valueKey];
 }

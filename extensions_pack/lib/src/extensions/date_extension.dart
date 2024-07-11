@@ -2,25 +2,12 @@ extension DateEPExtension on DateTime {
   DateTime get beginningOfMonth => DateTime.utc(year, month);
 
   int get daysInMonth {
-    switch (month) {
-      case 2:
-        return isLeapYear ? 29 : 28;
-      case 4:
-      case 6:
-      case 9:
-      case 11:
-        return 30;
-      case 1:
-      case 3:
-      case 5:
-      case 7:
-      case 8:
-      case 10:
-      case 12:
-        return 31;
-      default:
-        return 0;
-    }
+    return switch (month) {
+      2 => isLeapYear ? 29 : 28,
+      4 || 6 || 9 || 11 => 30,
+      1 || 3 || 5 || 7 || 8 || 10 || 12 => 31,
+      _ => 0,
+    };
   }
 
   DateTime get endOfDay {
@@ -63,22 +50,15 @@ extension DateEPExtension on DateTime {
   }
 
   int get weekDayBaseSunday {
-    switch (weekday) {
-      case DateTime.sunday:
-        return 0;
-      case DateTime.monday:
-        return 1;
-      case DateTime.tuesday:
-        return 2;
-      case DateTime.wednesday:
-        return 3;
-      case DateTime.thursday:
-        return 4;
-      case DateTime.friday:
-        return 5;
-      default:
-        return 6;
-    }
+    return switch (weekday) {
+      DateTime.sunday => 0,
+      DateTime.monday => 1,
+      DateTime.tuesday => 2,
+      DateTime.wednesday => 3,
+      DateTime.thursday => 4,
+      DateTime.friday => 5,
+      _ => 6,
+    };
   }
 
   int get weekOfYear {

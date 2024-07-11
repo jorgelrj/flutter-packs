@@ -427,7 +427,7 @@ class _MonthButtonState extends State<_MonthButton> {
 
   static const double _dayPickerRowHeight = 42.0;
 
-  final MaterialStatesController _statesController = MaterialStatesController();
+  final WidgetStatesController _statesController = WidgetStatesController();
 
   @override
   Widget build(BuildContext context) {
@@ -440,8 +440,8 @@ class _MonthButtonState extends State<_MonthButton> {
     }
 
     T? resolve<T>(
-      MaterialStateProperty<T>? Function(DatePickerThemeData? theme) getProperty,
-      Set<MaterialState> states,
+      WidgetStateProperty<T>? Function(DatePickerThemeData? theme) getProperty,
+      Set<WidgetState> states,
     ) {
       return effectiveValue(
         (DatePickerThemeData? theme) {
@@ -450,9 +450,9 @@ class _MonthButtonState extends State<_MonthButton> {
       );
     }
 
-    final Set<MaterialState> states = <MaterialState>{
-      if (widget.isDisabled) MaterialState.disabled,
-      if (widget.isSelectedDay) MaterialState.selected,
+    final Set<WidgetState> states = <WidgetState>{
+      if (widget.isDisabled) WidgetState.disabled,
+      if (widget.isSelectedDay) WidgetState.selected,
     };
 
     _statesController.value = states;
@@ -468,8 +468,8 @@ class _MonthButtonState extends State<_MonthButton> {
       states,
     );
 
-    final MaterialStateProperty<Color?> dayOverlayColor = MaterialStateProperty.resolveWith<Color?>(
-      (Set<MaterialState> states) => effectiveValue(
+    final WidgetStateProperty<Color?> dayOverlayColor = WidgetStateProperty.resolveWith<Color?>(
+      (Set<WidgetState> states) => effectiveValue(
         (DatePickerThemeData? theme) => theme?.dayOverlayColor?.resolve(states),
       ),
     );

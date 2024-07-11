@@ -36,11 +36,13 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
   final List<M> items;
   final TableActionFn<M>? actions;
   final VoidCallback onClearAll;
+  final String Function(int)? itemsSelectedTextBuilder;
 
   const AppTableActionsRow({
     required this.items,
     required this.actions,
     required this.onClearAll,
+    this.itemsSelectedTextBuilder,
     super.key,
   });
 
@@ -105,12 +107,13 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
             icon: const Icon(Icons.close),
           ),
           TitleSmall(
-            _strings.itemsSelected(items.length),
+            itemsSelectedTextBuilder?.call(items.length) ?? _strings.itemsSelected(items.length),
           ),
-          const VerticalDivider(
-            indent: 8,
-            endIndent: 8,
-          ),
+          if (actionsWidgets.isNotEmpty)
+            const VerticalDivider(
+              indent: 8,
+              endIndent: 8,
+            ),
           ...actionsWidgets,
         ].addSpacingBetween(),
       ),

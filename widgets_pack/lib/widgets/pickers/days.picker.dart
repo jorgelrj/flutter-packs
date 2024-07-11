@@ -28,7 +28,7 @@ class AppDaysPicker extends StatefulWidget {
 }
 
 class _AppDaysPickerState extends State<AppDaysPicker> {
-  static const _weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  static const _weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   late final ValueNotifier<Iterable<DateTime>> _datesNotifier;
   late final ValueNotifier<MonthAndYear> _monthYearNotifier;
@@ -125,7 +125,7 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: context.wpColorsConfig.surfaceContainerHigh,
+        color: context.colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(28),
       ),
       child: Column(

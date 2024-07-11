@@ -11,12 +11,20 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final String? hintText;
   final AppItemsValidator<T>? validator;
   final InputBorder? border;
+  final InputBorder? focusedBorder;
   final EdgeInsets? inputContentPadding;
   final EdgeInsets? tilesContentPadding;
   final bool showTrailing;
   final AppTextFormFieldErrorType errorType;
   final Widget Function(T item, bool selected, VoidCallback onTap)? tileBuilder;
   final bool enabled;
+  final bool updateTextOnChanged;
+  final bool? filled;
+  final Color? fillColor;
+  final TextInputType? keyboardType;
+  final Widget? suffixIcon;
+  final Widget? prefixIcon;
+  final bool requestFocusOnInitState;
 
   const AppDropDownFormField({
     required this.fetcher,
@@ -25,12 +33,20 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
     this.hintText,
     this.validator,
     this.border,
+    this.focusedBorder,
     this.inputContentPadding,
     this.tilesContentPadding,
     this.showTrailing = true,
     this.errorType = AppTextFormFieldErrorType.string,
     this.tileBuilder,
     this.enabled = true,
+    this.updateTextOnChanged = true,
+    this.filled,
+    this.fillColor,
+    this.keyboardType,
+    this.suffixIcon,
+    this.prefixIcon,
+    this.requestFocusOnInitState = false,
     super.key,
   });
 
@@ -204,17 +220,18 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
       canSizeOverlay: true,
       builder: (context) {
         const maxHeight = 200.0;
-        final widgetPosition = _renderBox!.localToGlobal(Offset.zero);
-        final availableSpace = MediaQuery.of(context).size.height - widgetPosition.dy - _widgetSize!.height;
+        final widgetPosition = _renderBox?.localToGlobal(Offset.zero) ?? Offset.zero;
+        final widgetSize = _widgetSize ?? Size.zero;
+        final availableSpace = MediaQuery.of(context).size.height - widgetPosition.dy - widgetSize.height;
 
         final openAbove = availableSpace < 128;
 
         return Positioned(
-          width: _widgetSize!.width,
+          width: widgetSize.width,
           child: CompositedTransformFollower(
             link: _layerLink,
             targetAnchor: openAbove ? Alignment.topLeft : Alignment.bottomLeft,
-            offset: Offset(0, openAbove ? -_widgetSize!.height : 0),
+            offset: Offset(0, openAbove ? -widgetSize.height : 0),
             showWhenUnlinked: false,
             child: Material(
               type: MaterialType.transparency,
@@ -264,7 +281,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   void _setTextValue() {
     final items = _selectedItemNotifier.value;
 
-    if (items.isEmpty) {
+    if (items.isEmpty || !widget.updateTextOnChanged) {
       _textController.clear();
     } else {
       final text = switch (widget.handler) {
@@ -307,6 +324,8 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     if (oldWidget.fetcher != widget.fetcher) {
       _loadedAll = false;
       _itemNotifier.value = <T>[];
+
+      _search(_textController.text);
     }
 
     if (oldWidget.handler != widget.handler) {
@@ -328,6 +347,12 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     required double availableSpace,
     required bool openAbove,
   }) {
+    if (!mounted) {
+      return const SizedBox.shrink();
+    }
+
+    final colorScheme = context.colorScheme;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -344,7 +369,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
                         : availableSpace - 16,
               ),
               decoration: BoxDecoration(
-                color: context.wpColorsConfig.surfaceContainer,
+                color: colorScheme.surfaceContainer,
                 borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(4),
                 ),
@@ -429,6 +454,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
         valueListenable: _hasItemsNotifier,
         builder: (context, hasItems, child) {
           return AppTextFormField(
+            requestFocusOnInitState: widget.requestFocusOnInitState,
             enabled: widget.enabled,
             controller: _textController,
             focusNode: _textFocusNode,
@@ -436,8 +462,13 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
             labelText: widget.labelText,
             hintText: widget.hintText,
             border: widget.border,
+            focusedBorder: widget.focusedBorder,
             errorType: widget.errorType,
             contentPadding: widget.inputContentPadding,
+            fillColor: widget.fillColor,
+            keyboardType: widget.keyboardType,
+            filled: widget.filled,
+            prefixIcon: widget.prefixIcon,
             validator: widget.validator != null
                 ? (_) {
                     return widget.validator!.validate(
@@ -445,13 +476,13 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
                     );
                   }
                 : null,
-            suffixIcon: widget.showTrailing
+            suffixIcon: widget.showTrailing && widget.updateTextOnChanged
                 ? hasItems
                     ? AppButton.icon(
                         onPressed: () => _handleItem(null),
                         icon: const Icon(Icons.close),
                       )
-                    : const Icon(Icons.arrow_drop_down)
+                    : widget.suffixIcon ?? const Icon(Icons.arrow_drop_down)
                 : null,
           );
         },

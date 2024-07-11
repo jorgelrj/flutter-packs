@@ -10,6 +10,7 @@ export 'iterable_extension.dart';
 export 'list_extension.dart';
 export 'map_extension.dart';
 export 'num_extension.dart';
+export 'object.extension.dart';
 export 'string_extension.dart';
 export 'time_extension.dart';
 export 'widget_extension.dart';

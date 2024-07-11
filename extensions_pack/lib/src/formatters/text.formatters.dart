@@ -68,7 +68,7 @@ class NumericalRangeTextFormatter extends TextInputFormatter {
 class MaxLengthTextFormatter extends TextInputFormatter {
   final int maxLength;
 
-  MaxLengthTextFormatter({required this.maxLength});
+  MaxLengthTextFormatter(this.maxLength);
 
   @override
   TextEditingValue formatEditUpdate(
@@ -89,7 +89,7 @@ class MaxLengthTextFormatter extends TextInputFormatter {
 class DecimalTextInputFormatter extends TextInputFormatter {
   final int? decimalRange;
 
-  DecimalTextInputFormatter({this.decimalRange}) : assert(decimalRange == null || decimalRange > 0);
+  DecimalTextInputFormatter(this.decimalRange) : assert(decimalRange == null || decimalRange > 0);
 
   bool _hasDecimal(String value) {
     return value.contains('.') || value.contains(',');

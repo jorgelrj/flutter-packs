@@ -4,6 +4,10 @@ import 'package:widgets_pack/widgets_pack.dart';
 
 class AppChip extends StatelessWidget {
   final String label;
+
+  /// Defaults to `context.textTheme.labelLarge`.
+  final TextStyle? labelStyle;
+
   final String? tooltip;
   final VoidCallback? onTap;
   final VoidCallback? onDoubleTap;
@@ -16,13 +20,14 @@ class AppChip extends StatelessWidget {
   final BorderRadius borderRadius;
   final Widget? avatar;
   final Widget? trailing;
-  final MaterialStateProperty<Color?>? color;
-  final MaterialStateProperty<Color?>? onColor;
+  final WidgetStateProperty<Color?>? color;
+  final WidgetStateProperty<Color?>? onColor;
   final IconData checkIcon;
   final Color? borderColor;
 
   const AppChip({
     required this.label,
+    this.labelStyle,
     this.tooltip,
     this.onTap,
     this.onDoubleTap,
@@ -60,19 +65,19 @@ class AppChip extends StatelessWidget {
     );
   }
 
-  MaterialStateColor _defaultBackgroundColors(BuildContext context, ColorScheme scheme) {
-    return MaterialStateColor.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+  WidgetStateColor _defaultBackgroundColors(BuildContext context, ColorScheme scheme) {
+    return WidgetStateColor.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return scheme.secondaryContainer;
       }
 
-      return backgroundColor ?? context.wpColorsConfig.surfaceContainerHigh ?? scheme.surface;
+      return backgroundColor ?? context.colorScheme.surfaceContainerHigh;
     });
   }
 
-  MaterialStateColor _defaultOnBackgroundColors(ColorScheme scheme) {
-    return MaterialStateColor.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+  WidgetStateColor _defaultOnBackgroundColors(ColorScheme scheme) {
+    return WidgetStateColor.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return scheme.onSecondaryContainer;
       }
 
@@ -97,8 +102,8 @@ class AppChip extends StatelessWidget {
           child: AppHoveringNotifier(
             builder: (context, hovering, child) {
               final states = {
-                if (selected) MaterialState.selected,
-                if (hovering) MaterialState.hovered,
+                if (selected) WidgetState.selected,
+                if (hovering) WidgetState.hovered,
               };
 
               final effectiveBackgroundColor =
@@ -130,11 +135,14 @@ class AppChip extends StatelessWidget {
                         child: avatar,
                       ),
                     Flexible(
-                      child: LabelLarge(
+                      child: Text(
                         label,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                      ).color(effectiveOnBackgroundColor),
+                        style: (labelStyle ?? context.textTheme.labelLarge)?.copyWith(
+                          color: effectiveOnBackgroundColor,
+                        ),
+                      ),
                     ),
                     if (onDelete != null)
                       InkWell(

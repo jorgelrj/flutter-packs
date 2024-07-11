@@ -9,6 +9,7 @@ class AppButton extends StatefulWidget {
   final Color? fillColor;
   final Color? hoverColor;
   final bool? loading;
+  final Size? minimumSize;
   final EdgeInsets? padding;
   final ValueChanged<bool>? onHover;
   final FutureOrCallback? onPressed;
@@ -21,6 +22,7 @@ class AppButton extends StatefulWidget {
     this.fillColor,
     this.hoverColor,
     this.loading,
+    this.minimumSize,
     this.padding,
     this.onHover,
     this.onPressed,
@@ -34,6 +36,7 @@ class AppButton extends StatefulWidget {
     this.fillColor,
     this.hoverColor,
     this.loading,
+    this.minimumSize,
     this.padding,
     this.onHover,
     this.onPressed,
@@ -47,6 +50,7 @@ class AppButton extends StatefulWidget {
     this.fillColor,
     this.hoverColor,
     this.loading,
+    this.minimumSize,
     this.padding,
     this.onHover,
     this.onPressed,
@@ -60,6 +64,7 @@ class AppButton extends StatefulWidget {
     this.fillColor,
     this.hoverColor,
     this.loading,
+    this.minimumSize,
     this.padding,
     this.onHover,
     this.onPressed,
@@ -73,6 +78,7 @@ class AppButton extends StatefulWidget {
     this.fillColor,
     this.hoverColor,
     this.loading,
+    this.minimumSize,
     this.padding,
     this.onHover,
     this.onPressed,
@@ -86,6 +92,7 @@ class AppButton extends StatefulWidget {
     this.fillColor,
     this.hoverColor,
     this.loading,
+    this.minimumSize,
     this.padding,
     this.onHover,
     this.onPressed,
@@ -252,6 +259,7 @@ class _AppButtonState extends State<AppButton> {
                   style: FilledButton.styleFrom(
                     padding: widget.padding,
                     backgroundColor: widget.fillColor,
+                    minimumSize: widget.minimumSize,
                   ).merge(themeData.filledButtonTheme.style),
                   onHover: widget.onHover,
                   onPressed: _onPressed,
@@ -261,6 +269,7 @@ class _AppButtonState extends State<AppButton> {
                   style: FilledButton.styleFrom(
                     padding: widget.padding,
                     backgroundColor: widget.fillColor,
+                    minimumSize: widget.minimumSize,
                   ).merge(themeData.filledButtonTheme.style),
                   onHover: widget.onHover,
                   onPressed: _onPressed,
@@ -269,9 +278,7 @@ class _AppButtonState extends State<AppButton> {
               AppButtonType.outlined => OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     padding: widget.padding,
-                    side: BorderSide(
-                      color: widget.fillColor ?? context.colorScheme.primary,
-                    ),
+                    minimumSize: widget.minimumSize,
                   ).merge(themeData.outlinedButtonTheme.style),
                   onHover: widget.onHover,
                   onPressed: _onPressed,
@@ -280,6 +287,7 @@ class _AppButtonState extends State<AppButton> {
               AppButtonType.text => TextButton(
                   style: TextButton.styleFrom(
                     padding: widget.padding,
+                    minimumSize: widget.minimumSize,
                   ).merge(themeData.textButtonTheme.style),
                   onHover: widget.onHover,
                   onPressed: _onPressed,
@@ -289,6 +297,7 @@ class _AppButtonState extends State<AppButton> {
                   style: ElevatedButton.styleFrom(
                     padding: widget.padding,
                     backgroundColor: widget.fillColor,
+                    minimumSize: widget.minimumSize,
                   ).merge(themeData.elevatedButtonTheme.style),
                   onHover: widget.onHover,
                   onPressed: _onPressed,

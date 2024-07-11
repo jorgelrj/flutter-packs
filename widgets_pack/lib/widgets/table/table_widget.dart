@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:sticky_headers/sticky_headers.dart';
 import 'package:widgets_pack/helpers/helpers.dart';
 import 'package:widgets_pack/widgets/widgets.dart';
 
@@ -25,6 +24,11 @@ typedef TableActionFn<M extends Object> = List<TableAction<M>> Function(List<M> 
 class AppTable<M extends Object> extends StatefulWidget {
   final TableController<M> controller;
   final TableActionFn<M>? actions;
+
+  /// if null, defaults to [TableActionsType.none] if [actions] null
+  /// or [TableActionsType.single] if [actions] is not null
+  final TableActionsType? actionsType;
+
   final List<TableColumn<M>> columns;
   final List<Widget> filters;
   final void Function(M)? onRowTap;
@@ -32,27 +36,34 @@ class AppTable<M extends Object> extends StatefulWidget {
   final AppButtonConfig? headerAction;
   final WidgetBuilder? emptyStateBuilder;
   final WidgetBuilder? aboveTableBuilder;
-  final bool canMultiSelect;
+  final Widget? Function(BuildContext context, List<Widget> filters)? filterBuilder;
+  final EdgeInsets headerPadding;
   final int pageSize;
   final bool showPagination;
   final String? headerTitle;
   final bool renderEmptyRows;
+  final ValueChanged<List<M>>? onSelectedItemsChanged;
+  final String Function(int)? itemsSelectedTextBuilder;
 
   const AppTable({
     required this.controller,
     required this.columns,
     this.actions,
+    this.actionsType,
     this.filters = const [],
     this.onRowTap,
     this.onRowDoubleTap,
     this.headerAction,
     this.emptyStateBuilder,
     this.aboveTableBuilder,
-    this.canMultiSelect = false,
+    this.headerPadding = EdgeInsets.zero,
+    this.filterBuilder,
     this.pageSize = 10,
     this.showPagination = true,
     this.headerTitle,
     this.renderEmptyRows = true,
+    this.onSelectedItemsChanged,
+    this.itemsSelectedTextBuilder,
     super.key,
   });
 
@@ -74,10 +85,12 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
   WPTableStringsConfig get _strings => context.wpStringsConfig.table;
 
   TableActionsType get actionsType {
+    if (widget.actionsType != null) {
+      return widget.actionsType!;
+    }
+
     if (widget.actions == null) {
       return TableActionsType.none;
-    } else if (widget.canMultiSelect) {
-      return TableActionsType.multi;
     } else {
       return TableActionsType.single;
     }
@@ -96,6 +109,10 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
 
     widget.controller.dataSource = _dataSource;
 
+    _dataSource.addListener(() {
+      widget.onSelectedItemsChanged?.call(_dataSource.selectedItems);
+    });
+
     if (kIsWeb) {
       BrowserContextMenu.disableContextMenu();
     }
@@ -109,7 +126,7 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
       _dataSource.setColumns(widget.columns);
     }
 
-    if (oldWidget.actions != widget.actions || oldWidget.canMultiSelect != widget.canMultiSelect) {
+    if (oldWidget.actions != widget.actions || oldWidget.actionsType != widget.actionsType) {
       _dataSource.setActionsType(actionsType);
     }
   }
@@ -119,6 +136,8 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
     if (kIsWeb) {
       BrowserContextMenu.enableContextMenu();
     }
+
+    _dataSource.dispose();
 
     super.dispose();
   }
@@ -130,49 +149,59 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
         return _DatasourceConfigConsumer<M, List<TableColumn<M>>>(
           selector: (source) => source.columns,
           builder: (context, columns) {
-            final fixedColumns = columns.where((c) => c.fixed).toList();
+            final fixedLeftColumns = columns.where((c) => c.fixedPosition == ColumnFixedPosition.left).toList();
+            final fixedRightColumns = columns.where((c) => c.fixedPosition == ColumnFixedPosition.right).toList();
             final normalColumns = columns.where((c) => !c.fixed).toList();
-            final fixedColumnsWidth = fixedColumns.fold<double>(
+            final fixedLeftColumnsWidth = fixedLeftColumns.fold<double>(
+              0,
+              (previousValue, element) => previousValue + element.width,
+            );
+            final fixedRightColumnsWidth = fixedRightColumns.fold<double>(
               0,
               (previousValue, element) => previousValue + element.width,
             );
 
-            final header = _DatasourceConfigConsumer<M, (List<M>, int)>(
-              selector: (source) => (source.selectedItems, source.selectedItems.length),
-              builder: (context, state) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (widget.headerTitle != null && widget.filters.isNotEmpty)
-                            Text(
-                              widget.headerTitle!,
-                              style: context.textTheme.headlineSmall,
-                            ).padded(const EdgeInsets.symmetric(horizontal: kXSSize, vertical: kGridSpacer)),
-                          if (state.$2 == 0)
-                            _AppTableFilterRow(
-                              headerTitle: widget.headerTitle,
-                              headerAction: widget.headerAction,
-                              filters: widget.filters,
-                            )
-                          else
-                            AppTableActionsRow(
-                              key: ValueKey(state.$1),
-                              items: state.$1,
-                              onClearAll: _dataSource.clearSelection,
-                              actions: widget.actions,
-                            ),
-                        ],
+            final header = Padding(
+              padding: widget.headerPadding,
+              child: _DatasourceConfigConsumer<M, (List<M>, int)>(
+                selector: (source) => (source.selectedItems, source.selectedItems.length),
+                builder: (context, state) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (widget.headerTitle != null && widget.filters.isNotEmpty)
+                              Text(
+                                widget.headerTitle!,
+                                style: context.textTheme.headlineSmall,
+                              ).padded(const EdgeInsets.symmetric(horizontal: kXSSize, vertical: kGridSpacer)),
+                            if (state.$2 == 0)
+                              widget.filterBuilder?.call(context, widget.filters) ??
+                                  _AppTableFilterRow(
+                                    headerTitle: widget.headerTitle,
+                                    headerAction: widget.headerAction,
+                                    filters: widget.filters,
+                                  )
+                            else
+                              AppTableActionsRow(
+                                key: ValueKey(state.$1),
+                                items: state.$1,
+                                onClearAll: _dataSource.clearSelection,
+                                actions: widget.actions,
+                                itemsSelectedTextBuilder: widget.itemsSelectedTextBuilder,
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              },
+                    ],
+                  );
+                },
+              ),
             );
 
             final table = _DatasourceConfigConsumer<M, bool>(
@@ -196,12 +225,12 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (fixedColumns.isNotEmpty)
+                          if (fixedLeftColumns.isNotEmpty)
                             SizedBox(
-                              width: fixedColumnsWidth,
+                              width: fixedLeftColumnsWidth,
                               child: _Table<M>(
                                 key: const Key('fixed_columns_table'),
-                                columns: fixedColumns,
+                                columns: fixedLeftColumns,
                                 actions: widget.actions,
                                 dataSource: _dataSource,
                                 rowBorder: Border(
@@ -224,7 +253,10 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
                               child: SizedBox(
                                 width: normalColumns
                                     .fold<double>(0, (previousValue, element) => previousValue + element.width)
-                                    .clamp(constraints.minWidth - fixedColumnsWidth, double.maxFinite),
+                                    .clamp(
+                                      constraints.minWidth - fixedLeftColumnsWidth - fixedRightColumnsWidth,
+                                      double.maxFinite,
+                                    ),
                                 child: _Table<M>(
                                   actions: widget.actions,
                                   key: const Key('normal_columns_table'),
@@ -233,16 +265,44 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
                                   onRowTap: widget.onRowTap,
                                   onRowDoubleTap: widget.onRowDoubleTap,
                                   renderEmptyRows: widget.renderEmptyRows,
-                                  maxRowHeight: fixedColumns.isNotEmpty ? 56 : null,
+                                  maxRowHeight: fixedLeftColumns.isNotEmpty ? 56 : null,
                                 ),
                               ),
                             ),
                           ),
+                          if (fixedRightColumns.isNotEmpty)
+                            SizedBox(
+                              width: fixedRightColumnsWidth,
+                              child: _Table<M>(
+                                key: const Key('fixed_right_columns_table'),
+                                columns: fixedRightColumns,
+                                actions: widget.actions,
+                                dataSource: _dataSource,
+                                rowBorder: Border(
+                                  left: BorderSide(
+                                    width: 0.5,
+                                    color: Theme.of(context).dividerColor,
+                                  ),
+                                ),
+                                showLoader: false,
+                                onRowTap: widget.onRowTap,
+                                onRowDoubleTap: widget.onRowDoubleTap,
+                                renderEmptyRows: widget.renderEmptyRows,
+                                maxRowHeight: 56,
+                              ),
+                            ),
                         ],
                       ),
                     ),
                     if (widget.showPagination)
-                      ConstrainedBox(
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: BorderSide(
+                              color: Theme.of(context).dividerColor,
+                            ),
+                          ),
+                        ),
                         constraints: const BoxConstraints(minHeight: 52),
                         child: _DatasourceConfigConsumer<M, TableDatasourceConfig<M>>(
                           selector: (source) => source.config,
@@ -298,9 +358,13 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
               },
             );
 
-            return StickyHeader(
-              header: header,
-              content: table,
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                header,
+                table,
+              ],
             );
           },
         );
@@ -344,7 +408,7 @@ class _Table<M extends Object> extends StatelessWidget {
           itemCount: pageSize + 1,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          separatorBuilder: (context, index) => const Divider(height: 0),
+          separatorBuilder: (context, index) => Divider(height: 0, color: Theme.of(context).dividerColor),
           itemBuilder: (context, index) {
             final isFirst = index == 0;
             final itemIndex = index - 1;
@@ -357,7 +421,7 @@ class _Table<M extends Object> extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 52),
+                        constraints: const BoxConstraints(minHeight: 56),
                         child: Row(
                           children: [
                             for (final column in columns) column.labelBuilder(context),
@@ -381,7 +445,7 @@ class _Table<M extends Object> extends StatelessWidget {
                   )
                 else
                   ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 52),
+                    constraints: BoxConstraints(minHeight: maxRowHeight ?? 56),
                     child: SizedBox(
                       height: maxRowHeight,
                       child: _DatasourceConfigConsumer<M, (M?, bool)>(

@@ -166,7 +166,7 @@ abstract class _AppChipsTextFieldState<T> extends State<AppChipsTextField<T>> {
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(kXXSSize),
                   ),
-                  color: context.wpColorsConfig.surfaceContainerHighest,
+                  color: context.colorScheme.surfaceContainerHighest,
                   border: Border(
                     bottom: BorderSide(
                       color: context.colorScheme.onSurfaceVariant,
@@ -536,7 +536,7 @@ class _DropdownContentState<T> extends _AppChipsTextFieldState<T> {
               padding: const EdgeInsets.symmetric(vertical: 4),
               constraints: const BoxConstraints(maxHeight: 200),
               decoration: BoxDecoration(
-                color: context.wpColorsConfig.surfaceContainer,
+                color: context.colorScheme.surfaceContainer,
                 borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(4),
                 ),

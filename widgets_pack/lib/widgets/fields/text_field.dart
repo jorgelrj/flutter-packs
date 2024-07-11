@@ -36,9 +36,11 @@ class AppTextFormField extends StatefulWidget {
   final List<String>? autofillHints;
   final AutovalidateMode autoValidateMode;
   final InputBorder? border;
+  final BoxConstraints? constraints;
   final EdgeInsets? contentPadding;
   final TextEditingController? controller;
   final Duration debounceTime;
+  final InputBorder? disabledBorder;
   final bool enabled;
   final InputBorder? enabledBorder;
   final AppTextFormFieldErrorType errorType;
@@ -52,11 +54,13 @@ class AppTextFormField extends StatefulWidget {
   final String? initialValue;
   final List<TextInputFormatter>? inputFormatters;
   final InputDecorationTheme? inputTheme;
+  final bool? isCollapsed;
   final TextInputType? keyboardType;
   final AppTextFormFieldLabelBehavior labelBehavior;
   final String? labelText;
   final TextStyle? labelStyle;
   final Widget? label;
+  final bool loseFocusOnOutsideTap;
   final int? maxLength;
 
   /// Value is ignored if [obscureText] is true
@@ -66,10 +70,13 @@ class AppTextFormField extends StatefulWidget {
   final bool obscureText;
   final FutureOr<void> Function(String value)? onChanged;
   final ValueChanged<String>? onFieldSubmitted;
+  final ValueChanged<bool>? onFocusChanged;
+  final Widget? prefix;
   final Widget? prefixIcon;
   final String? prefixText;
   final bool readOnly;
   final bool requestFocusOnInitState;
+  final ScrollPhysics? scrollPhysics;
   final bool showLoader;
   final TextStyle? style;
 
@@ -79,6 +86,7 @@ class AppTextFormField extends StatefulWidget {
   final Widget? suffix;
   final String? suffixText;
   final TextStyle? suffixStyle;
+  final TextAlign textAlign;
   final TextInputAction? textInputAction;
   final FormFieldValidator<String>? validator;
 
@@ -86,9 +94,11 @@ class AppTextFormField extends StatefulWidget {
     this.autofillHints,
     this.autoValidateMode = AutovalidateMode.disabled,
     this.border,
+    this.constraints,
     this.contentPadding,
     this.controller,
     this.debounceTime = Duration.zero,
+    this.disabledBorder,
     this.enabled = true,
     this.enabledBorder,
     this.errorType = AppTextFormFieldErrorType.string,
@@ -102,27 +112,33 @@ class AppTextFormField extends StatefulWidget {
     this.initialValue,
     this.inputFormatters,
     this.inputTheme,
+    this.isCollapsed,
     this.keyboardType,
     this.labelBehavior = AppTextFormFieldLabelBehavior.flutterAuto,
     this.labelText,
     this.labelStyle,
     this.label,
+    this.loseFocusOnOutsideTap = true,
     this.maxLength,
     this.maxLines = 1,
     this.minLines,
     this.obscureText = false,
     this.onChanged,
     this.onFieldSubmitted,
+    this.onFocusChanged,
+    this.prefix,
     this.prefixIcon,
     this.prefixText,
     this.readOnly = false,
     this.requestFocusOnInitState = false,
+    this.scrollPhysics,
     this.showLoader = false,
     this.style,
     this.suffix,
     this.suffixIcon,
     this.suffixText,
     this.suffixStyle,
+    this.textAlign = TextAlign.start,
     this.textInputAction,
     this.validator,
     super.key,
@@ -130,8 +146,11 @@ class AppTextFormField extends StatefulWidget {
 
   AppTextFormField.search({
     this.border,
+    this.constraints,
     this.contentPadding,
     this.controller,
+    this.disabledBorder,
+    this.enabled = true,
     this.fillColor,
     this.filled,
     this.focusedBorder,
@@ -140,37 +159,42 @@ class AppTextFormField extends StatefulWidget {
     this.hintText = 'Search',
     this.initialValue,
     this.inputTheme,
+    this.isCollapsed,
+    this.labelText,
     this.labelStyle,
     this.label,
+    this.loseFocusOnOutsideTap = true,
     this.onChanged,
     this.onFieldSubmitted,
+    this.onFocusChanged,
+    this.readOnly = false,
     this.requestFocusOnInitState = false,
+    this.scrollPhysics,
+    this.suffixIcon,
+    this.textAlign = TextAlign.start,
     super.key,
   })  : autofillHints = null,
         autoValidateMode = AutovalidateMode.disabled,
         debounceTime = defaultDebounceTime,
-        enabled = true,
         enabledBorder = null,
         errorType = AppTextFormFieldErrorType.string,
         hintStyle = null,
         inputFormatters = null,
         keyboardType = TextInputType.text,
-        labelText = null,
-        labelBehavior = AppTextFormFieldLabelBehavior.above,
+        labelBehavior = AppTextFormFieldLabelBehavior.flutterAuto,
         maxLength = null,
         maxLines = 1,
         minLines = null,
         obscureText = false,
+        prefix = null,
         prefixIcon = const Icon(
           Icons.search,
           size: kMDSize,
         ),
         prefixText = null,
-        readOnly = false,
         showLoader = false,
         style = null,
         suffix = null,
-        suffixIcon = null,
         suffixText = null,
         suffixStyle = null,
         textInputAction = TextInputAction.search,
@@ -196,9 +220,22 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
   late final _focusNode = widget.focusNode ?? FocusNode();
   late final _controller = widget.controller ?? TextEditingController();
 
+  String? _validator(String? value) {
+    final error = widget.validator?.call(value);
+    _configNotifier.value = _configNotifier.value.copyWith(error: () => error);
+
+    return error;
+  }
+
+  void _focusListener() {
+    widget.onFocusChanged?.call(_focusNode.hasFocus);
+  }
+
   @override
   void initState() {
     super.initState();
+
+    _focusNode.addListener(_focusListener);
 
     if (widget.initialValue != null) {
       _controller.text = widget.initialValue!;
@@ -221,13 +258,6 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
     }
   }
 
-  String? _validator(String? value) {
-    final error = widget.validator?.call(value);
-    _configNotifier.value = _configNotifier.value.copyWith(error: () => error);
-
-    return error;
-  }
-
   @override
   void didUpdateWidget(covariant AppTextFormField oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -240,6 +270,8 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
   @override
   void dispose() {
     super.dispose();
+
+    _focusNode.removeListener(_focusListener);
 
     _debounceSearch.close();
     _configNotifier.dispose();
@@ -263,6 +295,7 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
 
           return Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (widget.labelText != null && !widget.labelBehavior.isFlutter) ...[
                 TitleMedium(widget.labelText!),
@@ -280,27 +313,33 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
                 minLines: widget.minLines,
                 onChanged: _debounceSearch.add,
                 obscureText: config.obscureText,
-                onTapOutside: (_) => _focusNode.unfocus(),
+                onTapOutside: widget.loseFocusOnOutsideTap ? (_) => _focusNode.unfocus() : null,
                 validator: widget.validator != null ? _validator : null,
                 style: (widget.style ?? Theme.of(context).textTheme.bodyLarge),
                 keyboardType: widget.keyboardType,
                 inputFormatters: widget.inputFormatters,
                 onFieldSubmitted: widget.onFieldSubmitted,
+                scrollPhysics: widget.scrollPhysics,
                 textInputAction: widget.textInputAction,
                 maxLength: widget.maxLength,
+                textAlign: widget.textAlign,
                 decoration: InputDecoration(
+                  constraints: widget.constraints,
                   contentPadding: widget.contentPadding,
                   errorStyle: widget.errorType == AppTextFormFieldErrorType.string
                       ? null
                       : const TextStyle(
                           fontSize: 0,
                         ),
+                  disabledBorder: widget.disabledBorder ?? widget.border,
                   enabledBorder: widget.enabledBorder ?? widget.border,
                   labelStyle: widget.labelStyle,
                   floatingLabelStyle: widget.labelStyle,
                   helperText: widget.helperText,
                   hintText: widget.hintText,
                   hintStyle: widget.hintStyle,
+                  isCollapsed: widget.isCollapsed,
+                  prefix: widget.prefix,
                   prefixIcon: hasError && widget.errorType == AppTextFormFieldErrorType.iconLeft
                       ? Tooltip(
                           message: config.error!,

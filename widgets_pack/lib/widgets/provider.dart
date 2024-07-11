@@ -1,21 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-class WPColorsConfig extends Equatable {
-  final Color? surfaceContainer;
-  final Color? surfaceContainerHigh;
-  final Color? surfaceContainerHighest;
-
-  const WPColorsConfig({
-    this.surfaceContainer,
-    this.surfaceContainerHigh,
-    this.surfaceContainerHighest,
-  });
-
-  @override
-  List<Object?> get props => [surfaceContainer, surfaceContainerHigh, surfaceContainerHighest];
-}
-
 class WPWidgetsConfig extends Equatable {
   final Map<String, String>? videoPlayerCustomHeaders;
 
@@ -62,13 +47,11 @@ class WidgetsPackProvider extends StatefulWidget {
   final Widget child;
   final WPStringsConfig? stringsConfig;
   final WPWidgetsConfig? widgetsConfig;
-  final WPColorsConfig? colorsConfig;
 
   const WidgetsPackProvider({
     required this.child,
     this.stringsConfig,
     this.widgetsConfig,
-    this.colorsConfig,
     super.key,
   });
 
@@ -85,8 +68,6 @@ class _WidgetsPackProviderState extends State<WidgetsPackProvider> {
 
   WPStringsConfig? get stringsConfig => widget.stringsConfig;
 
-  WPColorsConfig? get colorsConfig => widget.colorsConfig;
-
   @override
   Widget build(BuildContext context) {
     return widget.child;
@@ -100,9 +81,5 @@ extension WidgetsPackProviderExtension on BuildContext {
 
   WPStringsConfig get wpStringsConfig {
     return WidgetsPackProvider.maybeOf(this)?.stringsConfig ?? WPStringsConfig();
-  }
-
-  WPColorsConfig get wpColorsConfig {
-    return WidgetsPackProvider.maybeOf(this)?.colorsConfig ?? const WPColorsConfig();
   }
 }

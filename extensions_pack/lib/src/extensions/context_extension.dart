@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 extension ContextEPExtension on BuildContext {
+  MediaQueryData get mq => MediaQuery.of(this);
   Size get screenSize => MediaQuery.of(this).size;
+
   TextTheme get textTheme => Theme.of(this).textTheme;
   ColorScheme get colorScheme => Theme.of(this).colorScheme;
 

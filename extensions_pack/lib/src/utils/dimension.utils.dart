@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 
 const double kGridSpacer = 8.0;
 const double kAppDefaultElevation = 8;
-const double kAppDefaultBorderRadius = kGridSpacer;
-const double kXXSSize = kGridSpacer / 2;
-const double kXSSize = kGridSpacer * 2;
-const double kSMSize = kGridSpacer * 3;
-const double kMDSize = kGridSpacer * 4;
-const double kLGSize = kGridSpacer * 5;
-const double kXLSize = kGridSpacer * 6;
-const double kXXLSize = kGridSpacer * 8;
+const double kAppDefaultBorderRadius = kGridSpacer; // 8
+const double kXXSSize = kGridSpacer / 2; // 4
+const double kXSSize = kGridSpacer * 2; // 16
+const double kSMSize = kGridSpacer * 3; // 24
+const double kMDSize = kGridSpacer * 4; // 32
+const double kLGSize = kGridSpacer * 5; // 40
+const double kXLSize = kGridSpacer * 6; // 48
+const double kXXLSize = kGridSpacer * 8; // 64
 
 const kBottomContentSpacing = Spacing(mainAxisExtent: 160);
 
