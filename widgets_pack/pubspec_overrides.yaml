@@ -1,4 +1,0 @@
-# melos_managed_dependency_overrides: extensions_pack
-dependency_overrides:
-  extensions_pack:
-    path: ../extensions_pack

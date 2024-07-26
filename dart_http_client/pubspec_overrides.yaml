@@ -1,0 +1,4 @@
+# melos_managed_dependency_overrides: my_linter
+dependency_overrides:
+  my_linter:
+    path: ../my-linter

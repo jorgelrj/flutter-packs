@@ -9,12 +9,6 @@ class Endpoint {
   final dynamic parameters;
   final Map<String, dynamic>? queryParameters;
 
-  /// This is force to use a [mockStrategy] if it exists
-  ///
-  /// Note: it will only work when [kDebugMode] is true
-  /// Please. Do not use this parameter in production.
-  final bool? forceMock;
-
   Endpoint({
     required this.path,
     required this.method,
@@ -23,6 +17,5 @@ class Endpoint {
     this.queryParameters,
     this.rawPath = false,
     this.headers,
-    this.forceMock,
   });
 }

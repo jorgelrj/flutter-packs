@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 /// ResponseType indicates which transformation should
 /// be automatically applied to the response data by network layer.
 enum ResponseType {

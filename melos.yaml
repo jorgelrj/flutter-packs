@@ -6,8 +6,9 @@ ide:
 
 packages:
   - dart_http_client
-  - extensions_pack
-  - widgets_pack
+  - extensions-pack
+  - widgets-pack
+  - my-linter
 
 command:
   bootstrap:
@@ -25,6 +26,9 @@ command:
 scripts:
   reset:
     run: melos clean && melos bootstrap
+
+  publish:
+    run: melos exec "flutter pub publish"
 
   analyze:
     run: flutter analyze . --no-fatal-warnings

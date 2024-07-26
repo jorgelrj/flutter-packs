@@ -54,6 +54,18 @@
       <excludeFolder url="file://$MODULE_DIR$/widgets_pack/example/macos/Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/example/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/widgets_pack/example/macos/Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/example/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/widgets_pack/example/macos/Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/widgets-pack/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/widgets-pack/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/widgets-pack/build" />
+      <excludeFolder url="file://$MODULE_DIR$/widgets-pack/example/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/widgets-pack/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/widgets-pack/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/extensions-pack/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/extensions-pack/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/extensions-pack/build" />
+      <excludeFolder url="file://$MODULE_DIR$/my-linter/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/my-linter/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/my-linter/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
