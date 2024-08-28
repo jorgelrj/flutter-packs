@@ -242,19 +242,15 @@ class _AppDateFilterState<M extends Object> extends _AppFilterState<M> {
           selected: hasText,
           showCheckmark: false,
           deleteIconColor: context.colorScheme.onPrimary,
-          onSelected: (_) {
-            if (!widget.enabled) {
-              return;
-            }
-
+          onSelected: widget.enabled ? (_) {
             _overlayController.show();
-          },
+          } : null,
           onDeleted: hasText && widget.allowNullValues
               ? () {
-                  _startDateNotifier.value = null;
-                  _endDateNotifier.value = null;
-                  _setValue();
-                }
+            _startDateNotifier.value = null;
+            _endDateNotifier.value = null;
+            _setValue();
+          }
               : null,
         );
       },

@@ -2,11 +2,15 @@ part of 'table_widget.dart';
 
 class _DatasourceConfigConsumer<M extends Object, T> extends StatefulWidget {
   final T Function(TableDataSource<M> dataSource) selector;
-  final Widget Function(BuildContext context, T value) builder;
+  final void Function(TableDataSource<M> dataSource)? listener;
+  final Widget Function(BuildContext context, T value, Widget? child) builder;
+  final Widget? child;
 
   const _DatasourceConfigConsumer({
     required this.selector,
     required this.builder,
+    this.listener,
+    this.child,
     super.key,
   });
 
@@ -20,6 +24,8 @@ class _DatasourceConfigConsumerState<M extends Object, T> extends State<_Datasou
   late final TableDataSource<M> _dataSource = context.tableDataSource<M>();
 
   void _datasourceListener() {
+    widget.listener?.call(_dataSource);
+
     final newValue = widget.selector(_dataSource);
 
     if (newValue != _config) {
@@ -49,6 +55,7 @@ class _DatasourceConfigConsumerState<M extends Object, T> extends State<_Datasou
     return widget.builder(
       context,
       _config,
+      widget.child,
     );
   }
 }

@@ -17,8 +17,12 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
     super.key,
   });
 
-  Widget _buildAction(AppAction<M> action) {
+  Widget _buildAction(AppAction<M> action, [bool useSubGroups = false]) {
     if (action is AppActionDivider<M>) {
+      if (useSubGroups) {
+        return const Divider();
+      }
+
       return const VerticalDivider(
         indent: 8,
         endIndent: 8,
@@ -26,6 +30,23 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
     }
 
     if (action is AppActionsGroup<M>) {
+      if (useSubGroups) {
+        return SubmenuButton(
+          menuChildren: [
+            ...action.items.map(
+              (item) {
+                return MenuItemButton(
+                  onPressed: item.onPressed,
+                  leadingIcon: item.icon,
+                  child: Text(item.label),
+                );
+              },
+            ),
+          ],
+          child: Text(action.label),
+        );
+      }
+
       return MenuAnchor(
         menuChildren: [
           ...action.items.map(
@@ -48,6 +69,14 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
       );
     }
 
+    if (useSubGroups) {
+      return MenuItemButton(
+        onPressed: action.onPressed,
+        leadingIcon: action.icon,
+        child: Text(action.label),
+      );
+    }
+
     return AppButton.icon(
       onPressed: action.onPressed,
       tooltip: action.label,
@@ -58,10 +87,10 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final _strings = context.wpStringsConfig.table;
-    Iterable<Widget> actionsWidgets = actions?.call(items).map(_buildAction) ?? [];
+    List<AppAction<M>> appActions = actions?.call(items).toList() ?? <AppAction<M>>[];
 
-    if (actionsWidgets.firstOrNull is VerticalDivider) {
-      actionsWidgets = actionsWidgets.skip(1);
+    if (appActions.firstOrNull is AppActionDivider<M>) {
+      appActions = appActions.skip(1).toList();
     }
 
     return Container(
@@ -80,12 +109,39 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
           TitleSmall(
             itemsSelectedTextBuilder?.call(items.length) ?? _strings.itemsSelected(items.length),
           ),
-          if (actionsWidgets.isNotEmpty)
-            const VerticalDivider(
-              indent: 8,
-              endIndent: 8,
+          const VerticalDivider(
+            indent: 8,
+            endIndent: 8,
+          ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final maxVisibleActions = (constraints.maxWidth - 44) ~/ 44;
+
+                return Row(
+                  children: [
+                    ...appActions.take(maxVisibleActions).map(_buildAction),
+                    if (appActions.length > maxVisibleActions)
+                      MenuAnchor(
+                        menuChildren: [
+                          ...appActions.sublist(maxVisibleActions).map((action) {
+                            return _buildAction(action, true);
+                          }),
+                        ],
+                        builder: (context, controller, child) {
+                          return AppButton.icon(
+                            onPressed: controller.open,
+                            tooltip: 'More',
+                            icon: const Icon(Icons.more_vert),
+                          );
+                        },
+                      ),
+                  ],
+                );
+              },
             ),
-          ...actionsWidgets,
+          ),
+          // if (actionsWidgets.isNotEmpty) ...actionsWidgets,
         ].addSpacingBetween(),
       ),
     );

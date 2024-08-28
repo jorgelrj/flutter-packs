@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import 'package:sticky_headers/sticky_headers.dart';
 import 'package:widgets_pack/helpers/helpers.dart';
 import 'package:widgets_pack/widgets/widgets.dart';
 
@@ -148,7 +150,7 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
       builder: (context, constraints) {
         return _DatasourceConfigConsumer<M, List<TableColumn<M>>>(
           selector: (source) => source.columns,
-          builder: (context, columns) {
+          builder: (context, columns, child) {
             final fixedLeftColumns = columns.where((c) => c.fixedPosition == ColumnFixedPosition.left).toList();
             final fixedRightColumns = columns.where((c) => c.fixedPosition == ColumnFixedPosition.right).toList();
             final normalColumns = columns.where((c) => !c.fixed).toList();
@@ -165,7 +167,7 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
               padding: widget.headerPadding,
               child: _DatasourceConfigConsumer<M, (List<M>, int)>(
                 selector: (source) => (source.selectedItems, source.selectedItems.length),
-                builder: (context, state) {
+                builder: (context, state, child) {
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -206,7 +208,7 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
 
             final table = _DatasourceConfigConsumer<M, bool>(
               selector: (source) => source.config.showEmptyState,
-              builder: (context, showEmptyState) {
+              builder: (context, showEmptyState, child) {
                 if (showEmptyState) {
                   return widget.emptyStateBuilder?.call(context) ??
                       SizedBox(
@@ -252,7 +254,7 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
                               scrollDirection: Axis.horizontal,
                               child: SizedBox(
                                 width: normalColumns
-                                    .fold<double>(0, (previousValue, element) => previousValue + element.width)
+                                    .fold<double>(56, (previousValue, element) => previousValue + element.width)
                                     .clamp(
                                       constraints.minWidth - fixedLeftColumnsWidth - fixedRightColumnsWidth,
                                       double.maxFinite,
@@ -306,7 +308,7 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
                         constraints: const BoxConstraints(minHeight: 52),
                         child: _DatasourceConfigConsumer<M, TableDatasourceConfig<M>>(
                           selector: (source) => source.config,
-                          builder: (context, config) {
+                          builder: (context, config, child) {
                             final firstIndex = config.currentPage * config.pageSize + 1;
 
                             return Row(
@@ -358,13 +360,9 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
               },
             );
 
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                header,
-                table,
-              ],
+            return StickyHeader(
+              header: header,
+              content: table,
             );
           },
         );
@@ -373,7 +371,7 @@ class _AppTableState<M extends Object> extends State<AppTable<M>> {
   }
 }
 
-class _Table<M extends Object> extends StatelessWidget {
+class _Table<M extends Object> extends StatefulWidget {
   final List<TableColumn<M>> columns;
   final TableDataSource<M> dataSource;
   final bool showLoader;
@@ -398,86 +396,152 @@ class _Table<M extends Object> extends StatelessWidget {
   });
 
   @override
+  State<_Table<M>> createState() => _TableState<M>();
+}
+
+class _TableState<M extends Object> extends State<_Table<M>> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 50),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return _DatasourceConfigConsumer<M, int>(
-      selector: (source) {
-        return renderEmptyRows ? source.config.pageSize : source.config.currentPageLength;
-      },
-      builder: (context, pageSize) {
-        return ListView.separated(
-          itemCount: pageSize + 1,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          separatorBuilder: (context, index) => Divider(height: 0, color: Theme.of(context).dividerColor),
-          itemBuilder: (context, index) {
-            final isFirst = index == 0;
-            final itemIndex = index - 1;
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isFirst)
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 56),
-                        child: Row(
-                          children: [
-                            for (final column in columns) column.labelBuilder(context),
-                          ],
-                        ),
-                      ),
-                      _DatasourceConfigConsumer<M, bool>(
-                        selector: (source) => source.config.loading,
-                        builder: (context, loading) {
-                          if (loading && showLoader) {
-                            return const LinearProgressIndicator();
-                          }
-
-                          return Divider(
-                            thickness: loading ? 2 : 0,
-                            height: loading ? 4 : 0,
-                          );
-                        },
-                      ),
-                    ],
-                  )
-                else
-                  ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: maxRowHeight ?? 56),
-                    child: SizedBox(
-                      height: maxRowHeight,
-                      child: _DatasourceConfigConsumer<M, (M?, bool)>(
-                        selector: (source) => source.currentItemAt(itemIndex),
-                        builder: (context, model) {
-                          if (model.$1 == null) {
-                            return const SizedBox();
-                          }
-
-                          return KeyedSubtree(
-                            key: ValueKey(model.$1),
-                            child: _TableRow<M>(
-                              key: ValueKey((index, model)),
-                              item: model.$1!,
-                              rowIndex: itemIndex,
-                              actions: actions,
-                              selected: model.$2,
-                              columns: columns,
-                              rowBorder: rowBorder,
-                              onRowDoubleTap: onRowDoubleTap,
-                              onRowTap: onRowTap,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
+    return _DatasourceConfigConsumer<M, bool>(
+      selector: (source) => source.config.loading,
+      builder: (context, loading, child) {
+        return Skeletonizer(
+          enabled: widget.showLoader && loading,
+          child: child!,
         );
       },
+      child: _DatasourceConfigConsumer<M, int>(
+        selector: (source) {
+          return widget.renderEmptyRows ? source.config.pageSize : source.config.currentPageLength;
+        },
+        builder: (context, pageSize, child) {
+          return ListView.separated(
+            itemCount: pageSize + 1,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            separatorBuilder: (context, index) => Divider(height: 0, color: Theme.of(context).dividerColor),
+            itemBuilder: (context, index) {
+              final isFirst = index == 0;
+              final itemIndex = index - 1;
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isFirst)
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 56),
+                          child: _DatasourceConfigConsumer<M, bool>(
+                            selector: (source) => source.selectedItems.length == source.config.pageSize,
+                            listener: (source) {
+                              if (source.actionsType.isMulti) {
+                                if (source.selectedItems.isEmpty) {
+                                  _controller.reverse();
+                                } else {
+                                  _controller.forward();
+                                }
+                              }
+                            },
+                            builder: (context, allSelected, child) {
+                              return Row(
+                                children: [
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(maxWidth: 56),
+                                    child: SizeTransition(
+                                      sizeFactor: _controller,
+                                      axis: Axis.horizontal,
+                                      child: Center(
+                                        child: Checkbox(
+                                          value: allSelected,
+                                          onChanged: (_) => widget.dataSource.toggleAllItems(),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  for (final column in widget.columns) column.labelBuilder(context),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        const Divider(thickness: 0, height: 0),
+                      ],
+                    )
+                  else
+                    ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: widget.maxRowHeight ?? 56),
+                      child: SizedBox(
+                        height: widget.maxRowHeight,
+                        child: _DatasourceConfigConsumer<M, (M?, bool)>(
+                          selector: (source) => source.currentItemAt(itemIndex),
+                          builder: (context, model, child) {
+                            if (model.$1 == null) {
+                              return _DatasourceConfigConsumer<M, bool>(
+                                selector: (source) => source.config.loading,
+                                builder: (context, loading, child) {
+                                  if (widget.showLoader && loading) {
+                                    return Row(
+                                      children: [
+                                        ...List.generate(widget.columns.length, (index) {
+                                          return SizedBox(
+                                            width: widget.columns[index].width,
+                                            child: Text(BoneMock.title),
+                                          );
+                                        }),
+                                      ],
+                                    );
+                                  }
+
+                                  return const SizedBox();
+                                },
+                              );
+                            }
+
+                            return KeyedSubtree(
+                              key: ValueKey(model.$1),
+                              child: _TableRow<M>(
+                                key: ValueKey((index, model)),
+                                item: model.$1!,
+                                rowIndex: itemIndex,
+                                actions: widget.actions,
+                                selected: model.$2,
+                                columns: widget.columns,
+                                rowBorder: widget.rowBorder,
+                                onRowDoubleTap: widget.onRowDoubleTap,
+                                onRowTap: widget.onRowTap,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
@@ -508,9 +572,10 @@ class _TableRow<M extends Object> extends StatefulWidget {
   State<_TableRow<M>> createState() => _TableRowState<M>();
 }
 
-class _TableRowState<M extends Object> extends State<_TableRow<M>> {
+class _TableRowState<M extends Object> extends State<_TableRow<M>> with SingleTickerProviderStateMixin {
   final _rowGroupId = UniqueKey();
   late TableDataSource<M> dataSource = context.tableDataSource();
+  late AnimationController _controller;
 
   Offset? _longPressOffset;
 
@@ -617,8 +682,20 @@ class _TableRowState<M extends Object> extends State<_TableRow<M>> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 50),
+      value: dataSource.actionsType.isMulti && dataSource.selectedItems.isNotEmpty ? 1 : 0,
+    );
+  }
+
+  @override
   void dispose() {
     _hide();
+    _controller.dispose();
 
     super.dispose();
   }
@@ -641,17 +718,44 @@ class _TableRowState<M extends Object> extends State<_TableRow<M>> {
             color: widget.selected ? context.colorScheme.primary.withOpacity(0.08) : null,
           ),
           child: IntrinsicHeight(
-            child: Row(
-              key: ValueKey(widget.item),
-              children: [
-                for (final column in widget.columns)
-                  column.contentBuilder(
-                    context,
-                    widget.item,
-                    (dataSource.currentPage, widget.rowIndex),
-                    context.tableState<M>().widget.controller,
-                  ),
-              ],
+            child: _DatasourceConfigConsumer<M, bool>(
+              listener: (source) {
+                if (source.actionsType.isMulti) {
+                  if (source.selectedItems.isEmpty) {
+                    _controller.reverse();
+                  } else {
+                    _controller.forward();
+                  }
+                }
+              },
+              selector: (source) => source.actionsType.isMulti,
+              builder: (context, isMulti, child) {
+                return Row(
+                  key: ValueKey(widget.item),
+                  children: [
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 56),
+                      child: SizeTransition(
+                        sizeFactor: _controller,
+                        axis: Axis.horizontal,
+                        child: Center(
+                          child: Checkbox(
+                            value: widget.selected,
+                            onChanged: (_) => dataSource.addOrRemoveItem(widget.item),
+                          ),
+                        ),
+                      ),
+                    ),
+                    for (final column in widget.columns)
+                      column.contentBuilder(
+                        context,
+                        widget.item,
+                        (dataSource.currentPage, widget.rowIndex),
+                        context.tableState<M>().widget.controller,
+                      ),
+                  ],
+                );
+              },
             ),
           ),
         ),

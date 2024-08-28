@@ -10,16 +10,20 @@ class AppDaysPicker extends StatefulWidget {
   final bool Function(DateTime)? selectableDatePredicate;
   final ValueChanged<DateTime>? onDateChanged;
   final String? Function(DateTime)? tooltipBuilder;
+  final Widget Function(Widget child)? dayBuilder;
   final bool enabled;
+  final DateTimeRange? selectedDisplayRange;
 
   const AppDaysPicker({
     required this.handler,
     required this.firstDate,
     required this.lastDate,
     this.selectableDatePredicate,
+    this.dayBuilder,
     this.onDateChanged,
     this.tooltipBuilder,
     this.enabled = true,
+    this.selectedDisplayRange,
     super.key,
   });
 
@@ -67,17 +71,35 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
     widget.onDateChanged?.call(date);
   }
 
-  ({Color borderColor, Color backgroundColor, Color textColor}) _dateData(DateTime date) {
-    final isSelected = _datesNotifier.value.any((d) => d.isSameDayAs(date));
+  ({
+    Color borderColor,
+    Color backgroundColor,
+    Color textColor,
+    bool isRangeStart,
+    bool isRangeEnd,
+    bool isBetweenRange,
+  }) _dateData(DateTime date) {
+    final selectedDisplayRange = widget.selectedDisplayRange;
+
+    final isSelected = selectedDisplayRange == null && _datesNotifier.value.any((d) => d.isSameDayAs(date));
     final isToday = date.isToday;
     final isDisabled = !date.isSameDayAs(widget.firstDate) && date.isBefore(widget.firstDate);
+    final isRangeStart = selectedDisplayRange?.start.isSameDayAs(date) ?? false;
+    final isRangeEnd = selectedDisplayRange?.end.isSameDayAs(date) ?? false;
+
+    final isBetweenRange = selectedDisplayRange != null &&
+        date.isAfter(selectedDisplayRange.start) &&
+        date.isBefore(selectedDisplayRange.end);
 
     return (
+      isRangeStart: isRangeStart,
+      isRangeEnd: isRangeEnd,
+      isBetweenRange: isBetweenRange,
       borderColor: isToday ? context.colorScheme.primary : Colors.transparent,
-      backgroundColor: isSelected ? context.colorScheme.primary : Colors.transparent,
+      backgroundColor: isSelected || isRangeStart || isRangeEnd ? context.colorScheme.primary : Colors.transparent,
       textColor: isDisabled
           ? context.colorScheme.onSurface.withOpacity(0.5)
-          : isSelected
+          : isSelected || isRangeStart || isRangeEnd
               ? context.colorScheme.onPrimary
               : isToday
                   ? context.colorScheme.primary
@@ -130,6 +152,7 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
@@ -212,6 +235,11 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
                       builder: (context, selectedDates, child) {
                         final tooltip = widget.tooltipBuilder?.call(date);
                         final data = _dateData(date);
+                        final child = Center(
+                          child: BodyLarge(
+                            date.day.toString(),
+                          ).color(data.textColor),
+                        );
 
                         return InkWell(
                           key: ValueKey(date),
@@ -220,19 +248,35 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
                             visible: tooltip.isNotBlank,
                             child: Tooltip(
                               message: tooltip ?? '',
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: data.borderColor),
-                                  color: data.backgroundColor,
-                                ),
-                                child: Center(
-                                  child: BodyLarge(
-                                    date.day.toString(),
-                                  ).color(data.textColor),
-                                ),
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  if (data.isRangeStart || data.isRangeEnd || data.isBetweenRange)
+                                    Align(
+                                      alignment: data.isBetweenRange
+                                          ? Alignment.center
+                                          : data.isRangeStart
+                                              ? Alignment.centerRight
+                                              : Alignment.centerLeft,
+                                      child: Container(
+                                        height: 40,
+                                        width: data.isBetweenRange ? 60 : 30,
+                                        decoration: BoxDecoration(
+                                          color: context.colorScheme.primary.withOpacity(0.5),
+                                        ),
+                                      ),
+                                    ),
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: data.borderColor),
+                                      color: data.backgroundColor,
+                                    ),
+                                    child: widget.dayBuilder?.call(child) ?? child,
+                                  ),
+                                ],
                               ),
                             ),
                           ),

@@ -1,4 +1,4 @@
-import 'package:equatable/equatable.dart';
+import 'package:extensions_pack/extensions_pack.dart';
 import 'package:flutter/material.dart';
 import 'package:widgets_pack/widgets_pack.dart';
 
@@ -13,51 +13,61 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final data = {
+      'teste',
+      'teste1',
+      'teste2',
+    };
+
     return MaterialApp(
-      home: Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: ListView.builder(
-              itemBuilder: (context, index) {
-                return AppDropDownFormField<User>(
-                  fetcher: AppLocalItemsFetcher([
-                    ...List.generate(
-                      10,
-                      (index) => User(
-                        id: index,
-                        email: '$index',
-                        name: 'User $index',
+      home: Builder(
+        builder: (context) {
+          return Scaffold(
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: AppDaysPicker(
+                      // enabled: false,
+                      handler: AppSingleItemHandler((date) {}),
+                      firstDate: DateTime(2021),
+                      lastDate: DateTime(2025),
+                      selectedDisplayRange: DateTimeRange(
+                        start: DateTime(2024, 8, 3),
+                        end: DateTime(2024, 9, 15),
                       ),
+                      onDateChanged: (_) {},
+                      dayBuilder: (child) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            child,
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: List<Widget>.generate(3, (_) {
+                                return Container(
+                                  width: 4,
+                                  height: 4,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.red,
+                                  ),
+                                );
+                              }).addSpacingBetween(mainAxisSpacing: 2),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                  ]),
-                  handler: AppSingleItemHandler((_) {}),
-                );
-              },
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
-  }
-}
-
-class User extends Equatable {
-  final int id;
-  final String name;
-  final String email;
-
-  const User({
-    required this.id,
-    required this.name,
-    required this.email,
-  });
-
-  @override
-  List<Object?> get props => [id, name, email];
-
-  @override
-  String toString() {
-    return 'User{id: $id, name: $name, email: $email}';
   }
 }

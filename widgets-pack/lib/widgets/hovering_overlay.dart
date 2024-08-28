@@ -31,7 +31,7 @@ class _AppOverlayBuilderState extends State<AppOverlayBuilder> {
   Widget build(BuildContext context) {
     return InkWell(
       key: _chipKey,
-      onTap: () => _overlayController.toggle(),
+      onTap: _overlayController.toggle,
       child: OverlayPortal.targetsRootOverlay(
         controller: _overlayController,
         overlayChildBuilder: (context) {

@@ -10,13 +10,12 @@ environment:
   sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
-  flutter:
-    sdk: flutter
+  extensions_pack: ^2.3.0+2
+  flutter: { sdk: flutter }
   widgets_pack: { path: ../ }
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
+  flutter_test: { sdk: flutter }
   my_linter: ^0.1.0
 
 flutter:

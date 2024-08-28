@@ -104,6 +104,7 @@ class AppButton extends StatefulWidget {
   factory AppButton.icon({
     required Widget icon,
     Color? fillColor,
+    Color? hoverColor,
     bool? loading,
     EdgeInsets? padding,
     ValueChanged<bool>? onHover,
@@ -117,6 +118,7 @@ class AppButton extends StatefulWidget {
     return _AppIconButton(
       key: key,
       fillColor: fillColor,
+      hoverColor: hoverColor,
       loading: loading,
       padding: padding,
       onHover: onHover,
@@ -326,6 +328,7 @@ class _AppIconButton extends AppButton {
     super.loading,
     super.onHover,
     super.showAnimation,
+    super.hoverColor,
     super.key,
     this.tooltip,
     this.size = 40,

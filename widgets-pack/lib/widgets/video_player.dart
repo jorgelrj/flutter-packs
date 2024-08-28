@@ -130,15 +130,39 @@ class _YoutubePlayerState extends State<_YoutubePlayer> {
   bool _hasError = false;
   bool _loading = true;
 
+  static String? getYoutubeIdRegex(String url) {
+    // Pattern for a variety of YouTube URL formats
+    const pattern =
+        r'(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.)?youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([\w-]{11})\S*';
+
+    final regExp = RegExp(pattern, caseSensitive: false);
+
+    final match = regExp.firstMatch(url);
+    if (match != null && match.groupCount >= 1) {
+      return match.group(1);
+    } else {
+      return null;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
 
-    final videoId = YoutubePlayerController.convertUrlToId(widget.videoUrl);
+    debugPrint('Initializing YoutubePlayer with videoUrl: ${widget.videoUrl}');
+
+    final videoId = getYoutubeIdRegex(widget.videoUrl);
+
+    debugPrint('YoutubePlayer videoId: $videoId');
 
     if (videoId == null) {
+      debugPrint('YoutubePlayer videoId is null');
+
+      _loading = false;
       _hasError = true;
     } else {
+      debugPrint('Initializing YoutubePlayerController with videoId: $videoId');
+
       _controller = YoutubePlayerController.fromVideoId(
         videoId: videoId,
         autoPlay: widget.autoPlay,
@@ -150,10 +174,16 @@ class _YoutubePlayerState extends State<_YoutubePlayer> {
           mute: widget.muted,
         ),
       );
+      _loading = false;
+
+      debugPrint('YoutubePlayerController initialized');
 
       _controller?.stream.firstWhere((data) {
         if (data.hasError) {
+          debugPrint('YoutubePlayer stream error: ${data.error}');
+
           setState(() {
+            _loading = false;
             _hasError = true;
           });
         }
@@ -174,7 +204,11 @@ class _YoutubePlayerState extends State<_YoutubePlayer> {
   Widget build(BuildContext context) {
     return SizedBox.expand(
       child: _controller == null
-          ? null
+          ? _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _hasError
+                  ? const Center(child: Text('Error loading video'))
+                  : const SizedBox()
           : YoutubePlayer(
               controller: _controller!,
               aspectRatio: widget.aspectRatio,
@@ -209,6 +243,7 @@ class _NetworkPlayer extends StatefulWidget {
 class _NetworkPlayerState extends State<_NetworkPlayer> {
   late VideoPlayerController _videoPlayerController;
   late bool muted = widget.muted;
+  late bool paused = !widget.autoPlay;
 
   ChewieController? _chewieController;
 
@@ -291,7 +326,12 @@ class _NetworkPlayerState extends State<_NetworkPlayer> {
                         height: _chewieController!.videoPlayerController.value.size.height,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(8),
-                          onTap: widget.showControls ? null : _chewieController!.togglePause,
+                          onTap: widget.showControls
+                              ? null
+                              : () {
+                                  _chewieController!.togglePause();
+                                  setState(() => paused = !paused);
+                                },
                           child: Chewie(
                             controller: _chewieController!,
                           ),
@@ -311,9 +351,23 @@ class _NetworkPlayerState extends State<_NetworkPlayer> {
                         onPressed: () => setAudio(mute: !muted),
                       ),
                     ),
+                  if (!widget.showControls && paused)
+                    Center(
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.play_circle_outline,
+                          color: Colors.grey,
+                          size: 48,
+                        ),
+                        onPressed: () {
+                          _chewieController!.play();
+                          setState(() => paused = false);
+                        },
+                      ),
+                    ),
                 ],
               )
-            : const SizedBox(),
+            : const Center(child: AppCircularLoader()),
       ),
     );
   }

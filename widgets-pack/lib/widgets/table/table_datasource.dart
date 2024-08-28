@@ -4,7 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:widgets_pack/widgets/table/table.dart';
 import 'package:widgets_pack/widgets/widgets.dart';
 
-enum TableActionsType { none, single, multi }
+enum TableActionsType {
+  none,
+  single,
+  multi;
+
+  bool get isMulti => this == TableActionsType.multi;
+}
 
 class TableDatasourceConfig<M extends Object> extends Equatable {
   final int pageSize;
@@ -166,6 +172,16 @@ class TableDataSource<M extends Object> extends ChangeNotifier {
         position.$1: pageItems,
       },
     );
+  }
+
+  void toggleAllItems() {
+    if (selectedItems.length == config.pages[config.currentPage]?.length) {
+      selectedItems.clear();
+    } else {
+      selectedItems = List.from(config.pages[config.currentPage] ?? []);
+    }
+
+    notifyListeners();
   }
 
   Future<void> reset({bool keepOffset = false}) {

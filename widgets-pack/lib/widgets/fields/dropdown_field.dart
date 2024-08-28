@@ -152,7 +152,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     };
 
     _filteredItemsNotifier.value = _itemNotifier.value.where((item) {
-      return widget.handler.asString(item).toLowerCase().contains(search.toLowerCase());
+      return widget.handler.filter(item, search);
     }).toList();
   }
 
@@ -394,14 +394,16 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     }
 
     if (oldWidget.handler != widget.handler) {
-      _selectedItemNotifier.value = switch (widget.handler) {
-        final AppSingleItemHandler<T> handler => [handler.initialValue].whereNotNull().toList(),
-        final AppMultipleItemsHandler<T> handler => handler.initialValue,
-      };
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _selectedItemNotifier.value = switch (widget.handler) {
+          final AppSingleItemHandler<T> handler => [handler.initialValue].whereNotNull().toList(),
+          final AppMultipleItemsHandler<T> handler => handler.initialValue,
+        };
 
-      if (!_textFocusNode.hasFocus) {
-        _setTextValue();
-      }
+        if (!_textFocusNode.hasFocus) {
+          _setTextValue();
+        }
+      });
     }
 
     if (oldWidget.loading != widget.loading) {

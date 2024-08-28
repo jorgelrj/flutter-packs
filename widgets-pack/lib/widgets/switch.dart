@@ -60,6 +60,7 @@ class _AppSwitchState extends State<AppSwitch> {
   @override
   Widget build(BuildContext context) {
     final colorTheme = context.colorScheme;
+    final enabled = widget.onChanged != null;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -67,12 +68,12 @@ class _AppSwitchState extends State<AppSwitch> {
         if (widget.labels?.left != null)
           BodyLarge(
             widget.labels!.left!,
-          ).medium().color(!_value ? colorTheme.onSurface : colorTheme.onSurfaceVariant),
+          ).medium().color(!_value && enabled ? colorTheme.onSurface : colorTheme.onSurfaceVariant),
         Stack(
           children: [
             Switch(
               value: _value,
-              onChanged: widget.onChanged == null ? null : _onChanged,
+              onChanged: enabled ? _onChanged : null,
             ),
             if (_loading)
               Positioned(
@@ -88,7 +89,7 @@ class _AppSwitchState extends State<AppSwitch> {
         if (widget.labels?.right != null)
           BodyLarge(
             widget.labels!.right!,
-          ).medium().color(_value ? colorTheme.onSurface : colorTheme.onSurfaceVariant),
+          ).medium().color(_value && enabled ? colorTheme.onSurface : colorTheme.onSurfaceVariant),
       ].addSpacingBetween(),
     );
   }

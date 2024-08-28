@@ -5,11 +5,13 @@ import 'package:extensions_pack/extensions_pack.dart';
 
 sealed class AppItemsHandler<T> extends Equatable {
   final bool Function(T, T)? compareItems;
+  final bool Function(T, String)? filterItems;
   final String Function(T)? itemAsString;
 
   const AppItemsHandler({
     this.compareItems,
     this.itemAsString,
+    this.filterItems,
   });
 
   FutureOr<void> onListChanged(List<T> list);
@@ -18,8 +20,9 @@ sealed class AppItemsHandler<T> extends Equatable {
 
   String asString(T item) => itemAsString?.call(item) ?? item.toString();
 
-  @override
-  List<Object?> get props => [];
+  bool filter(T item, String filter) {
+    return filterItems?.call(item, filter) ?? asString(item).toLowerCase().contains(filter.toLowerCase());
+  }
 }
 
 class AppSingleItemHandler<T> extends AppItemsHandler<T> {
@@ -31,6 +34,7 @@ class AppSingleItemHandler<T> extends AppItemsHandler<T> {
     this.initialValue,
     super.compareItems,
     super.itemAsString,
+    super.filterItems,
   });
 
   @override
@@ -49,6 +53,7 @@ class AppMultipleItemsHandler<T> extends AppItemsHandler<T> {
     this.initialValue = const [],
     super.compareItems,
     super.itemAsString,
+    super.filterItems,
   });
 
   @override

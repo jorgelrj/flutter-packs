@@ -54,7 +54,6 @@ linter:
     - close_sinks
     - collection_methods_unrelated_type
     - combinators_ordering
-    - comment_references
     - conditional_uri_does_not_exist
     - constant_identifier_names
     - control_flow_in_finally
