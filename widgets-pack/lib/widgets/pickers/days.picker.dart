@@ -7,12 +7,14 @@ class AppDaysPicker extends StatefulWidget {
   final AppItemsHandler<DateTime> handler;
   final DateTime firstDate;
   final DateTime lastDate;
+  final DateTime? initialDate;
   final bool Function(DateTime)? selectableDatePredicate;
   final ValueChanged<DateTime>? onDateChanged;
   final String? Function(DateTime)? tooltipBuilder;
-  final Widget Function(Widget child)? dayBuilder;
+  final Widget Function(Widget child, [DateTime? date])? dayBuilder;
   final bool enabled;
   final DateTimeRange? selectedDisplayRange;
+  final Function(MonthAndYear date)? onDisplayedMonthChanged;
 
   const AppDaysPicker({
     required this.handler,
@@ -24,6 +26,8 @@ class AppDaysPicker extends StatefulWidget {
     this.tooltipBuilder,
     this.enabled = true,
     this.selectedDisplayRange,
+    this.onDisplayedMonthChanged,
+    this.initialDate,
     super.key,
   });
 
@@ -63,9 +67,15 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
     }
 
     if (isSelected) {
-      _datesNotifier.value = selectedDates.where((it) => it != date);
+      _datesNotifier.value = switch (widget.handler) {
+        (final AppSingleItemHandler<DateTime> _) => [],
+        (final AppMultipleItemsHandler<DateTime> _) => selectedDates.where((it) => it != date),
+      };
     } else {
-      _datesNotifier.value = [...selectedDates, date];
+      _datesNotifier.value = switch (widget.handler) {
+        (final AppSingleItemHandler<DateTime> _) => [date],
+        (final AppMultipleItemsHandler<DateTime> _) => [...selectedDates, date],
+      };
     }
 
     widget.onDateChanged?.call(date);
@@ -112,7 +122,8 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
     super.initState();
 
     _datesNotifier = switch (widget.handler) {
-      (final AppSingleItemHandler<DateTime> handler) => ValueNotifier([handler.initialValue].whereNotNull()),
+      (final AppSingleItemHandler<DateTime> handler) =>
+        ValueNotifier([widget.initialDate ?? handler.initialValue].whereNotNull()),
       (final AppMultipleItemsHandler<DateTime> handler) => ValueNotifier(handler.initialValue),
     };
 
@@ -120,12 +131,20 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
       MonthAndYear.fromDateTime(_datesNotifier.value.firstOrNull ?? DateTime.now()),
     );
 
+    _monthYearNotifier.addListener(() {
+      widget.onDisplayedMonthChanged?.call(_monthYearNotifier.value);
+    });
+
     _datesNotifier.addListener(_datesListener);
   }
 
   @override
   void didUpdateWidget(covariant AppDaysPicker oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    if (widget.initialDate != null && MonthAndYear.fromDateTime(widget.initialDate!) != _monthYearNotifier.value) {
+      _monthYearNotifier.value = MonthAndYear.fromDateTime(widget.initialDate!);
+    }
 
     if (widget.handler != oldWidget.handler) {
       _datesNotifier.value = switch (widget.handler) {
@@ -274,7 +293,7 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
                                       border: Border.all(color: data.borderColor),
                                       color: data.backgroundColor,
                                     ),
-                                    child: widget.dayBuilder?.call(child) ?? child,
+                                    child: widget.dayBuilder?.call(child, date) ?? child,
                                   ),
                                 ],
                               ),

@@ -1,14 +1,12 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=/Users/jorge/Development/flutter"
-export "FLUTTER_APPLICATION_PATH=/Users/jorge/Projects/flutter-packs/widgets-pack/example"
+export "FLUTTER_ROOT=C:\src\flutter\flutter"
+export "FLUTTER_APPLICATION_PATH=C:\Users\franc\dev\flutter-packs-fork\widgets-pack\example"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
-export "FLUTTER_TARGET=/Users/jorge/Projects/flutter-packs/widgets-pack/example/lib/main.dart"
 export "FLUTTER_BUILD_DIR=build"
 export "FLUTTER_BUILD_NAME=1.0.0"
 export "FLUTTER_BUILD_NUMBER=1"
-export "DART_DEFINES=Zmx1dHRlci5pbnNwZWN0b3Iuc3RydWN0dXJlZEVycm9ycz10cnVl"
 export "DART_OBFUSCATION=false"
 export "TRACK_WIDGET_CREATION=true"
 export "TREE_SHAKE_ICONS=false"
-export "PACKAGE_CONFIG=/Users/jorge/Projects/flutter-packs/widgets-pack/example/.dart_tool/package_config.json"
+export "PACKAGE_CONFIG=.dart_tool/package_config.json"
