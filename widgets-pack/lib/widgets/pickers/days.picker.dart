@@ -15,6 +15,7 @@ class AppDaysPicker extends StatefulWidget {
   final bool enabled;
   final DateTimeRange? selectedDisplayRange;
   final Function(MonthAndYear date)? onDisplayedMonthChanged;
+  final bool showTitle;
 
   const AppDaysPicker({
     required this.handler,
@@ -28,6 +29,7 @@ class AppDaysPicker extends StatefulWidget {
     this.selectedDisplayRange,
     this.onDisplayedMonthChanged,
     this.initialDate,
+    this.showTitle = true,
     super.key,
   });
 
@@ -178,8 +180,10 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const LabelLarge('Select date'),
-                const Spacing(mainAxisExtent: 36),
+                if (widget.showTitle) ...[
+                  const LabelLarge('Select date'),
+                  const Spacing(mainAxisExtent: 36),
+                ],
                 ValueListenableBuilder<MonthAndYear>(
                   valueListenable: _monthYearNotifier,
                   builder: (context, selection, child) {
