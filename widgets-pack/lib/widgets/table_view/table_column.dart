@@ -176,7 +176,7 @@ class DateColumn<M extends Object> extends TableColumn<M> {
     super.contentPadding,
     super.decoration,
     super.nullValuePlaceholder,
-  }) : super(numeric: true);
+  });
 
   @override
   List<Object?> get props => [

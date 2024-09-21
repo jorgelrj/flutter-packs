@@ -131,7 +131,6 @@ class _YoutubePlayerState extends State<_YoutubePlayer> {
   bool _loading = true;
 
   static String? getYoutubeIdRegex(String url) {
-    // Pattern for a variety of YouTube URL formats
     const pattern =
         r'(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.)?youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([\w-]{11})\S*';
 

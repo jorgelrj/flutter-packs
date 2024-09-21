@@ -27,7 +27,7 @@ class _MyAppState extends State<MyApp> {
   ];
 
   late final controller = AppTableViewListController(
-    items: data,
+    fetcher: () => data,
   );
 
   @override
@@ -52,23 +52,23 @@ class _MyAppState extends State<MyApp> {
                             return [
                               AppAction(
                                 label: 'Testing',
-                                icon: Icon(Icons.ac_unit),
-                                onPressed: () => print('Testing'),
+                                icon: const Icon(Icons.ac_unit),
+                                onPressed: () => debugPrint('Testing'),
                               ),
                               AppAction(
                                 label: 'Testing 2',
-                                icon: Icon(Icons.ac_unit),
-                                onPressed: () => print('Testing 2'),
+                                icon: const Icon(Icons.ac_unit),
+                                onPressed: () => debugPrint('Testing 2'),
                               ),
                             ];
                           },
                         ),
                         controller: controller,
                         columns: [
-                          TextColumn(label: Text('Name'), value: (user) => user.$1),
-                          TextColumn(label: Text('Last Name'), value: (user) => user.$2),
-                          NumberColumn(label: Text('Age'), value: (user) => user.$3),
-                          TextColumn(label: Text('Email'), value: (user) => user.$4),
+                          TextColumn(label: const Text('Name'), value: (user) => user.$1),
+                          TextColumn(label: const Text('Last Name'), value: (user) => user.$2),
+                          NumberColumn(label: const Text('Age'), value: (user) => user.$3),
+                          TextColumn(label: const Text('Email'), value: (user) => user.$4),
                         ],
                       ),
                     ),

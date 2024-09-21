@@ -7,6 +7,7 @@ class AppTableFilterRow extends StatefulWidget {
   final List<Widget> filters;
 
   const AppTableFilterRow({
+    super.key,
     this.headerAction,
     this.filters = const [],
   });
