@@ -812,6 +812,60 @@ class HeadlineLarge extends _AppText {
   }
 }
 
+class LabelSmall extends _AppText {
+  const LabelSmall(
+    super.data, {
+    super.key,
+    super.textAlign,
+    super.softWrap,
+    super.maxLines,
+    super.overflow,
+  }) : super(
+          textStyle: _TextStyle.labelMedium,
+        );
+
+  const LabelSmall._(
+    super.data, {
+    required super.textStyle,
+    super.key,
+    super.textAlign,
+    super.softWrap,
+    super.maxLines,
+    super.overflow,
+    super.color,
+    super.decoration,
+    super.fontWeight,
+    super.fontSize,
+  });
+
+  @override
+  LabelSmall copyWith({
+    String? text,
+    Color? color,
+    TextAlign? textAlign,
+    bool? softWrap,
+    int? maxLines,
+    TextOverflow? overflow,
+    double? fontSize,
+    TextDecoration? decoration,
+    FontWeight? fontWeight,
+  }) {
+    return LabelSmall._(
+      text ?? data!,
+      key: key,
+      textStyle: textStyle,
+      textAlign: textAlign ?? this.textAlign,
+      softWrap: softWrap ?? this.softWrap,
+      maxLines: maxLines ?? this.maxLines,
+      overflow: overflow ?? this.overflow,
+      color: color ?? _color,
+      decoration: decoration ?? _decoration,
+      fontWeight: fontWeight ?? _fontWeight,
+      fontSize: fontSize ?? _fontSize,
+    );
+  }
+}
+
 class LabelMedium extends _AppText {
   const LabelMedium(
     super.data, {
