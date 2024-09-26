@@ -9,6 +9,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final AppItemsFetcher<T> fetcher;
   final AppItemsHandler<T> handler;
   final String? labelText;
+  final TextStyle? labelStyle;
   final String? hintText;
   final AppItemsValidator<T>? validator;
   final InputBorder? border;
@@ -38,11 +39,13 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final WidgetBuilder? loadingBuilder;
   final TextStyle? style;
   final bool loading;
+  final bool showClearButton;
 
   const AppDropDownFormField({
     required this.fetcher,
     required this.handler,
     this.labelText,
+    this.labelStyle,
     this.hintText,
     this.validator,
     this.border,
@@ -72,6 +75,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
     this.loadingBuilder,
     this.style,
     this.loading = false,
+    this.showClearButton = true,
     super.key,
   });
 
@@ -514,12 +518,12 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
                                   contentPadding: padding,
                                   selected: selected,
                                 ),
-                              (AppMultipleItemsHandler<T>()) => CheckboxListTile(
+                              final AppMultipleItemsHandler<T> handler => CheckboxListTile(
                                   key: ObjectKey(item),
                                   title: textWg,
                                   value: selected,
                                   onChanged: (_) => onTapItem(),
-                                  controlAffinity: ListTileControlAffinity.leading,
+                                  controlAffinity: handler.controlAffinity,
                                   contentPadding: padding,
                                 ),
                             };
@@ -554,6 +558,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
                 focusNode: _textFocusNode,
                 key: _widgetKey,
                 labelText: widget.labelText,
+                labelStyle: widget.labelStyle,
                 style: widget.style,
                 hintText: widget.hintText,
                 border: showing ? (widget.overlayOpenBorder ?? widget.border) : widget.border,
@@ -573,10 +578,12 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
                     : null,
                 suffixIcon: widget.showTrailing && widget.updateTextOnChanged
                     ? hasItems
-                        ? AppButton.icon(
-                            onPressed: () => _handleItem(null),
-                            icon: const Icon(Icons.close),
-                          )
+                        ? widget.showClearButton
+                            ? AppButton.icon(
+                                onPressed: () => _handleItem(null),
+                                icon: const Icon(Icons.close),
+                              )
+                            : const Icon(Icons.arrow_drop_down)
                         : widget.suffixIcon ?? const Icon(Icons.arrow_drop_down)
                     : null,
               );

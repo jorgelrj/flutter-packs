@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:extensions_pack/extensions_pack.dart';
+import 'package:flutter/material.dart';
 
 sealed class AppItemsHandler<T> extends Equatable {
   final bool Function(T, T)? compareItems;
@@ -47,10 +48,12 @@ class AppSingleItemHandler<T> extends AppItemsHandler<T> {
 class AppMultipleItemsHandler<T> extends AppItemsHandler<T> {
   final FutureOr<void> Function(List<T>) onChanged;
   final List<T> initialValue;
+  final ListTileControlAffinity controlAffinity;
 
   const AppMultipleItemsHandler(
     this.onChanged, {
     this.initialValue = const [],
+    this.controlAffinity = ListTileControlAffinity.leading,
     super.compareItems,
     super.itemAsString,
     super.filterItems,

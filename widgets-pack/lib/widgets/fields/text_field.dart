@@ -43,6 +43,7 @@ class AppTextFormField extends StatefulWidget {
   final InputBorder? disabledBorder;
   final bool enabled;
   final InputBorder? enabledBorder;
+  final InputBorder? errorBorder;
   final AppTextFormFieldErrorType errorType;
   final Color? fillColor;
   final bool? filled;
@@ -103,6 +104,7 @@ class AppTextFormField extends StatefulWidget {
     this.disabledBorder,
     this.enabled = true,
     this.enabledBorder,
+    this.errorBorder,
     this.errorType = AppTextFormFieldErrorType.string,
     this.fillColor,
     this.filled,
@@ -183,6 +185,7 @@ class AppTextFormField extends StatefulWidget {
         autoValidateMode = AutovalidateMode.disabled,
         debounceTime = defaultDebounceTime,
         enabledBorder = null,
+        errorBorder = null,
         errorType = AppTextFormFieldErrorType.string,
         hintStyle = null,
         inputFormatters = null,
@@ -353,6 +356,8 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
                         ),
                   disabledBorder: widget.disabledBorder ?? widget.border,
                   enabledBorder: widget.enabledBorder ?? widget.border,
+                  errorBorder: widget.errorBorder ?? widget.border,
+                  focusedErrorBorder: widget.errorBorder ?? widget.border,
                   labelStyle: widget.labelStyle,
                   floatingLabelStyle: widget.labelStyle,
                   helperText: widget.helperText,
