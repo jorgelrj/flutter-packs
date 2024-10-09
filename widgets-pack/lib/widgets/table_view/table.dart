@@ -100,6 +100,14 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
 
   @override
   Widget build(BuildContext context) {
+    final showActionsColumn = (widget.config.showActionsAsTrailingIcon && widget.config.actions != null) ||
+        widget.config.persistentTrailingActions != null;
+
+    final showEmptyState =
+        widget.config.emptyStateBuilder != null && !widget.controller.loading && widget.controller.items.isEmpty;
+
+    final showFiltersRow = widget.config.filters.isNotEmpty || widget.config.action != null;
+
     return AnimatedBuilder(
       animation: widget.controller,
       builder: (context, child) {
@@ -121,7 +129,7 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                   );
                 }
 
-                if (widget.config.filters.isNotEmpty || widget.config.action != null) {
+                if (showFiltersRow) {
                   return AppTableFilterRow(
                     filters: widget.config.filters,
                     headerAction: widget.config.action,
@@ -131,18 +139,15 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                 return const SizedBox();
               },
             ),
-            if (widget.config.emptyStateBuilder != null &&
-                !widget.controller.loading &&
-                widget.controller.items.isEmpty)
-              widget.config.emptyStateBuilder!(context)
-            else
-              Flexible(child: child!),
+            if (showEmptyState) widget.config.emptyStateBuilder!(context) else Flexible(child: child!),
           ],
         );
       },
       child: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(
           scrollbars: false,
+          overscroll: false,
+          physics: const ClampingScrollPhysics(),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -188,7 +193,7 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                         ),
                       ),
                     ),
-                    if (widget.config.showActionsAsTrailingIcon && widget.config.actions != null)
+                    if (showActionsColumn)
                       _ActionsColumn(
                         actionsScrollController: _actionsScrollController,
                         controller: widget.controller,
@@ -270,69 +275,93 @@ class _ActionsColumn<M extends Object> extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
-        return Column(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: context.colorScheme.onSurfaceVariant,
-                    width: 0.5,
+        return IntrinsicWidth(
+          child: Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: context.colorScheme.onSurfaceVariant,
+                      width: 0.5,
+                    ),
                   ),
                 ),
+                height: _columnHeight,
               ),
-              width: 40,
-              height: _columnHeight,
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                controller: actionsScrollController,
-                physics: const ClampingScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: List.generate(
-                    controller.pageSize,
-                    (index) {
-                      final item = controller.itemAtIndex(index);
-                      final visible = item != null;
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: actionsScrollController,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(
+                      controller.pageSize,
+                      (index) {
+                        final item = controller.itemAtIndex(index);
+                        final visible = item != null;
 
-                      return ValueListenableBuilder<int?>(
-                        valueListenable: hoveredRowNotifier,
-                        builder: (context, hoveredRow, child) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: hoveredRow == index + 1 ? context.colorScheme.surfaceContainer : null,
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: context.colorScheme.onSurfaceVariant,
-                                  width: 0.5,
+                        return ValueListenableBuilder<int?>(
+                          valueListenable: hoveredRowNotifier,
+                          builder: (context, hoveredRow, child) {
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: hoveredRow == index + 1 ? context.colorScheme.surfaceContainer : null,
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: context.colorScheme.onSurfaceVariant,
+                                    width: 0.5,
+                                  ),
                                 ),
                               ),
-                            ),
-                            height: _columnHeight,
-                            child: child,
-                          );
-                        },
-                        child: !visible
-                            ? const SizedBox(width: 40)
-                            : MenuAnchor(
-                                menuChildren: [
-                                  ...config.actions!([item]).toAnchorChildren(),
-                                ],
-                                builder: (context, controller, child) {
-                                  return AppButton.icon(
-                                    onPressed: controller.toggle,
-                                    icon: const Icon(Icons.more_horiz),
-                                  );
-                                },
-                              ),
-                      );
-                    },
+                              height: _columnHeight,
+                              child: child,
+                            );
+                          },
+                          child: Row(
+                            children: visible
+                                ? [
+                                    ...?config.persistentTrailingActions?.call(item).map((action) {
+                                      if (action is AppActionsGroup) {
+                                        return MenuAnchor(
+                                          menuChildren: [
+                                            ...config.actions!([item]).toAnchorChildren(),
+                                          ],
+                                          builder: (context, controller, child) {
+                                            return AppButton.icon(
+                                              onPressed: controller.toggle,
+                                              icon: action.icon,
+                                            );
+                                          },
+                                        );
+                                      } else {
+                                        return AppButton.icon(
+                                          onPressed: action.onPressed,
+                                          icon: action.icon,
+                                        );
+                                      }
+                                    }),
+                                    MenuAnchor(
+                                      menuChildren: [
+                                        ...config.actions!([item]).toAnchorChildren(),
+                                      ],
+                                      builder: (context, controller, child) {
+                                        return AppButton.icon(
+                                          onPressed: controller.toggle,
+                                          icon: const Icon(Icons.more_horiz),
+                                        );
+                                      },
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -406,7 +435,6 @@ class _CheckBoxesColumn<M extends Object> extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 controller: checkboxScrollController,
-                physics: const ClampingScrollPhysics(),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: List.generate(
@@ -671,11 +699,9 @@ class _TableViewState<M extends Object> extends State<_TableView<M>> {
           pinnedRowCount: 1,
           pinnedColumnCount: widget.config.fixedColumns,
           horizontalDetails: ScrollableDetails.horizontal(
-            physics: const ClampingScrollPhysics(),
             controller: widget.horizontalScrollController,
           ),
           verticalDetails: ScrollableDetails.vertical(
-            physics: const ClampingScrollPhysics(),
             controller: widget.verticalScrollController,
           ),
           columnBuilder: (index) {

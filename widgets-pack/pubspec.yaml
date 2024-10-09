@@ -1,6 +1,6 @@
 name: widgets_pack
 description: Widgets collection for flutter applications
-version: 0.4.0+2
+version: 0.4.0+8
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -21,7 +21,7 @@ dependencies:
   two_dimensional_scrollables: ^0.3.2
   video_player: ^2.9.1
   visibility_detector: ^0.4.0+2
-  youtube_player_iframe: ^5.1.5
+  youtube_player_iframe: ^5.2.0
 
 dev_dependencies:
   my_linter: ^0.1.0+3

@@ -12,6 +12,7 @@ class AppTableViewConfig<M extends Object> extends Equatable {
   final WidgetBuilder? emptyStateBuilder;
   final int pageSize;
   final int fixedColumns;
+  final List<AppAction<M>> Function(M)? persistentTrailingActions;
 
   const AppTableViewConfig({
     TableActionsType? actionType,
@@ -23,6 +24,7 @@ class AppTableViewConfig<M extends Object> extends Equatable {
     this.emptyStateBuilder,
     this.pageSize = 10,
     this.fixedColumns = 0,
+    this.persistentTrailingActions,
   }) : actionType = actionType ?? (actions == null ? TableActionsType.none : TableActionsType.multi);
 
   @override
@@ -33,5 +35,6 @@ class AppTableViewConfig<M extends Object> extends Equatable {
         showActionsAsTrailingIcon,
         pageSize,
         fixedColumns,
+        persistentTrailingActions,
       ];
 }

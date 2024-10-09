@@ -1,12 +1,13 @@
 analyzer:
 
   errors:
+    avoid_dynamic_calls: warning
     body_might_complete_normally_nullable: ignore
+    comment_references: ignore
     depend_on_referenced_packages: ignore
     deprecated_member_use: info
     library_private_types_in_public_api: ignore
     undefined_prefixed_name: ignore
-    avoid_dynamic_calls: warning
 
   exclude:
     - 'lib/generated_plugin_registrant.dart'

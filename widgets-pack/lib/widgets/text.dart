@@ -821,7 +821,7 @@ class LabelSmall extends _AppText {
     super.maxLines,
     super.overflow,
   }) : super(
-          textStyle: _TextStyle.labelMedium,
+          textStyle: _TextStyle.labelSmall,
         );
 
   const LabelSmall._(

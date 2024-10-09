@@ -120,4 +120,24 @@ class MonthAndYear extends Equatable {
       year: year,
     );
   }
+
+  MonthAndYear addMonths(int months) {
+    final newYear = year + (month + months - 1) ~/ 12;
+    final newMonth = (month + months - 1) % 12 + 1;
+
+    return MonthAndYear(
+      month: newMonth,
+      year: newYear,
+    );
+  }
+
+  MonthAndYear subtractMonths(int months) {
+    final newYear = year - (month - months - 1) ~/ 12;
+    final newMonth = (month - months - 1) % 12 + 1;
+
+    return MonthAndYear(
+      month: newMonth,
+      year: newYear,
+    );
+  }
 }

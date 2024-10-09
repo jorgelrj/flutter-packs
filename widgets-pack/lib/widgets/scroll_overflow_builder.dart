@@ -52,9 +52,12 @@ class ScrollOverflowBuilderState extends State<ScrollOverflowBuilder> {
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
+                      begin: Alignment.centerRight,
+                      end: Alignment.centerLeft,
                       colors: [
-                        Colors.transparent,
+                        context.colorScheme.surface,
                         context.colorScheme.surface.withOpacity(0.5),
+                        Colors.transparent,
                       ],
                     ),
                   ),
@@ -70,6 +73,7 @@ class ScrollOverflowBuilderState extends State<ScrollOverflowBuilder> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
+                        context.colorScheme.surface,
                         context.colorScheme.surface.withOpacity(0.5),
                         Colors.transparent,
                       ],

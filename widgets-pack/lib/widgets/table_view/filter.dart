@@ -68,16 +68,17 @@ class _AppTableFilterRowState extends State<AppTableFilterRow> {
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
+                              begin: Alignment.centerRight,
+                              end: Alignment.centerLeft,
                               colors: [
+                                context.colorScheme.surface,
+                                context.colorScheme.surface.withOpacity(0.5),
                                 Colors.transparent,
-                                context.colorScheme.surface,
-                                context.colorScheme.surface,
-                                context.colorScheme.surface,
                               ],
                             ),
                           ),
                           child: AppButton.icon(
-                            hoverColor: const Color(0xFF28292A),
+                            hoverColor: context.colorScheme.surface,
                             onPressed: () {
                               scrollController.animateTo(
                                 scrollController.offset + 100,
@@ -98,14 +99,13 @@ class _AppTableFilterRowState extends State<AppTableFilterRow> {
                             gradient: LinearGradient(
                               colors: [
                                 context.colorScheme.surface,
-                                context.colorScheme.surface,
-                                context.colorScheme.surface,
+                                context.colorScheme.surface.withOpacity(0.5),
                                 Colors.transparent,
                               ],
                             ),
                           ),
                           child: AppButton.icon(
-                            hoverColor: const Color(0xFF28292A),
+                            hoverColor: context.colorScheme.surface,
                             onPressed: () {
                               scrollController.animateTo(
                                 scrollController.offset - 100,
