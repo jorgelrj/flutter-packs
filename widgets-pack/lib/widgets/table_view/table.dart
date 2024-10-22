@@ -205,49 +205,58 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
               ),
             ),
             const Spacing(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                const BodyLarge('Rows per page'),
-                ValueListenableBuilder<int>(
-                  valueListenable: _pageSizeNotifier,
-                  builder: (context, size, child) {
-                    return IntrinsicWidth(
-                      child: AppTextFormField(
-                        readOnly: true,
-                        initialValue: size.toString(),
-                        filled: true,
-                        fillColor: context.colorScheme.surfaceBright,
-                        border: const OutlineInputBorder(),
-                      ),
-                    );
-                  },
-                ),
-                AppButton.icon(
-                  icon: const Icon(Icons.arrow_back_ios_new),
-                  onPressed: widget.controller.previousPage,
-                ),
-                AnimatedBuilder(
-                  animation: widget.controller,
-                  builder: (context, child) {
-                    return BodyLarge(
-                      [
-                        (widget.controller.pageSize * widget.controller.currentPage) + 1,
-                        '-',
-                        widget.controller.pageSize * (widget.controller.currentPage + 1),
-                        if (widget.controller.isMaxItemsKnown) ...[
-                          'of',
-                          widget.controller.maxItems,
-                        ],
-                      ].join(' '),
-                    );
-                  },
-                ),
-                AppButton.icon(
-                  icon: const Icon(Icons.arrow_forward_ios),
-                  onPressed: widget.controller.nextPage,
-                ),
-              ].addSpacingBetween(),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isSmallScreen = constraints.maxWidth < 600;
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    BodyLarge(
+                      'Rows${isSmallScreen ? '' : ' per page'}',
+                    ),
+                    ValueListenableBuilder<int>(
+                      valueListenable: _pageSizeNotifier,
+                      builder: (context, size, child) {
+                        return IntrinsicWidth(
+                          child: AppTextFormField(
+                            readOnly: true,
+                            initialValue: size.toString(),
+                            filled: true,
+                            fillColor: context.colorScheme.surfaceBright,
+                            border: const OutlineInputBorder(),
+                          ),
+                        );
+                      },
+                    ),
+                    if (isSmallScreen) const Spacer(),
+                    AppButton.icon(
+                      icon: const Icon(Icons.arrow_back_ios_new),
+                      onPressed: widget.controller.previousPage,
+                    ),
+                    AnimatedBuilder(
+                      animation: widget.controller,
+                      builder: (context, child) {
+                        return BodyLarge(
+                          [
+                            (widget.controller.pageSize * widget.controller.currentPage) + 1,
+                            '-',
+                            widget.controller.pageSize * (widget.controller.currentPage + 1),
+                            if (widget.controller.isMaxItemsKnown) ...[
+                              'of',
+                              widget.controller.maxItems,
+                            ],
+                          ].join(' '),
+                        );
+                      },
+                    ),
+                    AppButton.icon(
+                      icon: const Icon(Icons.arrow_forward_ios),
+                      onPressed: widget.controller.nextPage,
+                    ),
+                  ].addSpacingBetween(),
+                );
+              },
             ),
           ],
         ),
