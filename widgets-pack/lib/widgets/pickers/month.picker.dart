@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:widgets_pack/helpers/helpers.dart';
 
 class AppMonthPicker extends StatefulWidget {
@@ -81,13 +82,15 @@ class _AppMonthPickerState extends State<AppMonthPicker> with RestorationMixin {
     final defaults = DatePickerTheme.defaults(context);
     final localizations = MaterialLocalizations.of(context);
 
-    final double textScaleFactor =
-        MediaQuery.textScalerOf(context).clamp(maxScaleFactor: _kMaxTextScaleFactor).textScaleFactor;
+    final double textScaleFactor = MediaQuery.textScalerOf(
+      context,
+    ).clamp(maxScaleFactor: _kMaxTextScaleFactor).textScaleFactor;
+
     final dialogSize = _calendarLandscapeDialogSize * textScaleFactor;
 
     final Widget header = _DatePickerHeader(
       helpText: localizations.datePickerHelpText,
-      titleText: _selectedDate.value == null ? '' : localizations.formatMonthYear(_selectedDate.value!),
+      titleText: _selectedDate.value == null ? '' : DateFormat('MMM yyyy').format(_selectedDate.value!),
       titleStyle: datePickerTheme.headerHeadlineStyle ?? defaults.headerHeadlineStyle,
       orientation: Orientation.landscape,
       isShort: true,
@@ -215,6 +218,7 @@ class _DatePickerHeader extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
+
     final Text title = Text(
       titleText,
       semanticsLabel: titleText,
