@@ -1,9 +1,11 @@
 import 'package:chewie/chewie.dart';
 import 'package:extensions_pack/extensions_pack.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:widgets_pack/widgets_pack.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart' as yt_mobile;
+import 'package:youtube_player_iframe/youtube_player_iframe.dart' as yt_web;
 
 class VideoPlayer extends StatelessWidget {
   final String source;
@@ -70,14 +72,25 @@ class VideoPlayer extends StatelessWidget {
     final videoConfig = config ?? context.wpWidgetsConfig.videoPlayer;
 
     if (_isYouTube(source)) {
-      return _YoutubePlayer(
-        key: ValueKey(source),
-        videoUrl: source,
-        autoPlay: autoPlay,
-        muted: muted,
-        showControls: showControls,
-        aspectRatio: aspectRatio,
-      );
+      if (kIsWeb) {
+        return _YoutubePlayer(
+          key: ValueKey(source),
+          videoUrl: source,
+          autoPlay: autoPlay,
+          muted: muted,
+          showControls: showControls,
+          aspectRatio: aspectRatio,
+        );
+      } else {
+        return _YoutubePlayerMobile(
+          key: ValueKey(source),
+          videoUrl: source,
+          autoPlay: autoPlay,
+          muted: muted,
+          showControls: showControls,
+          aspectRatio: aspectRatio,
+        );
+      }
     } else if (source.isUrl) {
       return _NetworkPlayer(
         key: ValueKey(source),
@@ -101,14 +114,14 @@ class VideoPlayer extends StatelessWidget {
   }
 }
 
-class _YoutubePlayer extends StatefulWidget {
+class _YoutubePlayerMobile extends StatefulWidget {
   final String videoUrl;
   final bool autoPlay;
   final bool muted;
   final bool showControls;
   final double aspectRatio;
 
-  const _YoutubePlayer({
+  const _YoutubePlayerMobile({
     required this.videoUrl,
     required this.autoPlay,
     required this.muted,
@@ -118,11 +131,11 @@ class _YoutubePlayer extends StatefulWidget {
   });
 
   @override
-  State<_YoutubePlayer> createState() => _YoutubePlayerState();
+  State<_YoutubePlayerMobile> createState() => _YoutubePlayerMobileState();
 }
 
-class _YoutubePlayerState extends State<_YoutubePlayer> {
-  YoutubePlayerController? _controller;
+class _YoutubePlayerMobileState extends State<_YoutubePlayerMobile> {
+  yt_mobile.YoutubePlayerController? _controller;
 
   bool _hasError = false;
   bool _loading = true;
@@ -159,10 +172,118 @@ class _YoutubePlayerState extends State<_YoutubePlayer> {
     } else {
       debugPrint('Initializing YoutubePlayerController with videoId: $videoId');
 
-      _controller = YoutubePlayerController.fromVideoId(
+      _controller = yt_mobile.YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: yt_mobile.YoutubePlayerFlags(
+          autoPlay: widget.autoPlay,
+          mute: widget.muted,
+          hideControls: !widget.showControls,
+          controlsVisibleAtStart: widget.showControls,
+        ),
+      );
+      _loading = false;
+
+      debugPrint('YoutubePlayerController initialized');
+
+      _controller?.addListener(() {
+        if (_controller!.value.hasError) {
+          debugPrint('YoutubePlayer stream error: ${_controller!.value.errorCode}');
+
+          setState(() {
+            _loading = false;
+            _hasError = true;
+          });
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: _controller == null
+          ? _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _hasError
+                  ? const Center(child: Text('Error loading video'))
+                  : const SizedBox()
+          : yt_mobile.YoutubePlayer(
+              controller: _controller!,
+              aspectRatio: widget.aspectRatio,
+            ),
+    );
+  }
+}
+
+class _YoutubePlayer extends StatefulWidget {
+  final String videoUrl;
+  final bool autoPlay;
+  final bool muted;
+  final bool showControls;
+  final double aspectRatio;
+
+  const _YoutubePlayer({
+    required this.videoUrl,
+    required this.autoPlay,
+    required this.muted,
+    required this.showControls,
+    required this.aspectRatio,
+    super.key,
+  });
+
+  @override
+  State<_YoutubePlayer> createState() => _YoutubePlayerState();
+}
+
+class _YoutubePlayerState extends State<_YoutubePlayer> {
+  yt_web.YoutubePlayerController? _controller;
+
+  bool _hasError = false;
+  bool _loading = true;
+
+  static String? getYoutubeIdRegex(String url) {
+    const pattern =
+        r'(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.)?youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([\w-]{11})\S*';
+
+    final regExp = RegExp(pattern, caseSensitive: false);
+
+    final match = regExp.firstMatch(url);
+    if (match != null && match.groupCount >= 1) {
+      return match.group(1);
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    debugPrint('Initializing YoutubePlayer with videoUrl: ${widget.videoUrl}');
+
+    final videoId = getYoutubeIdRegex(widget.videoUrl);
+
+    debugPrint('YoutubePlayer videoId: $videoId');
+
+    if (videoId == null) {
+      debugPrint('YoutubePlayer videoId is null');
+
+      _loading = false;
+      _hasError = true;
+    } else {
+      debugPrint('Initializing YoutubePlayerController with videoId: $videoId');
+
+      _controller = yt_web.YoutubePlayerController.fromVideoId(
         videoId: videoId,
         autoPlay: widget.autoPlay,
-        params: YoutubePlayerParams(
+        params: yt_web.YoutubePlayerParams(
           showControls: widget.showControls,
           showVideoAnnotations: false,
           strictRelatedVideos: true,
@@ -204,7 +325,7 @@ class _YoutubePlayerState extends State<_YoutubePlayer> {
               : _hasError
                   ? const Center(child: Text('Error loading video'))
                   : const SizedBox()
-          : YoutubePlayer(
+          : yt_web.YoutubePlayer(
               controller: _controller!,
               aspectRatio: widget.aspectRatio,
               backgroundColor: Colors.black,
