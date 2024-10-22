@@ -77,7 +77,6 @@ class VideoPlayer extends StatelessWidget {
         muted: muted,
         showControls: showControls,
         aspectRatio: aspectRatio,
-        origin: videoConfig?.youtubeOrigin,
       );
     } else if (source.isUrl) {
       return _NetworkPlayer(
@@ -108,7 +107,6 @@ class _YoutubePlayer extends StatefulWidget {
   final bool muted;
   final bool showControls;
   final double aspectRatio;
-  final String? origin;
 
   const _YoutubePlayer({
     required this.videoUrl,
@@ -116,7 +114,6 @@ class _YoutubePlayer extends StatefulWidget {
     required this.muted,
     required this.showControls,
     required this.aspectRatio,
-    this.origin,
     super.key,
   });
 
@@ -169,7 +166,6 @@ class _YoutubePlayerState extends State<_YoutubePlayer> {
           showControls: widget.showControls,
           showVideoAnnotations: false,
           strictRelatedVideos: true,
-          origin: widget.origin,
           mute: widget.muted,
         ),
       );

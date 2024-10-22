@@ -14,15 +14,15 @@ class WPWidgetsConfig extends Equatable {
 
 class WPVideoPlayerConfig extends Equatable {
   final Map<String, String>? headers;
-  final String? youtubeOrigin;
 
   const WPVideoPlayerConfig({
     this.headers,
-    this.youtubeOrigin,
   });
 
   @override
-  List<Object?> get props => [headers, youtubeOrigin];
+  List<Object?> get props => [
+        headers,
+      ];
 }
 
 class WPStringsConfig extends Equatable {
