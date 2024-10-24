@@ -3,6 +3,7 @@ export 'bool_extension.dart';
 export 'color.extension.dart';
 export 'context_extension.dart';
 export 'date_extension.dart';
+export 'date_time_extension.dart';
 export 'double_extension.dart';
 export 'duration_extension.dart';
 export 'form_key.extension.dart';

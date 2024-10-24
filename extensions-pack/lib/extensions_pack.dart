@@ -2,9 +2,9 @@ library extensions_pack;
 
 export 'package:collection/collection.dart';
 
-export 'src/extensions/extensions.dart';
-export 'src/formatters/formatters.dart';
-export 'src/types/types.dart';
-export 'src/utils/utils.dart';
-export 'src/validators/index.dart';
-export 'src/widgets/index.dart';
+export 'extensions/extensions.dart';
+export 'formatters/formatters.dart';
+export 'types/types.dart';
+export 'utils/utils.dart';
+export 'validators/validators.dart';
+export 'widgets/widgets.dart';

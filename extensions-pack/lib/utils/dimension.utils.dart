@@ -1,4 +1,4 @@
-import 'package:extensions_pack/src/widgets/spacing.dart';
+import 'package:extensions_pack/extensions_pack.dart';
 import 'package:flutter/material.dart';
 
 const double kGridSpacer = 8.0;

@@ -1,3 +1,4 @@
+export 'date.dart';
 export 'debouncer.dart';
 export 'dimension.utils.dart';
 export 'filter.utils.dart';

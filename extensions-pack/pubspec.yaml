@@ -1,7 +1,7 @@
 name: extensions_pack
 description: Collection of dart extensions.
 
-version: 2.3.0+2
+version: 2.4.0
 
 repository: https://github.com/jorgelrj/extensions_pack
 
@@ -14,7 +14,7 @@ dependencies:
   flutter: { sdk: flutter }
   intl: ^0.19.0
   recase: ^4.1.0
-  url_launcher: ^6.3.0
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   my_linter: ^0.1.0+3
