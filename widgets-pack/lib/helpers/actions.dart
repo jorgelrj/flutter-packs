@@ -4,11 +4,13 @@ class AppAction<M extends Object> {
   final String label;
   final Widget icon;
   final void Function()? onPressed;
+  final String? tooltip;
 
   const AppAction({
     required this.label,
     required this.icon,
     this.onPressed,
+    this.tooltip,
   });
 }
 
@@ -40,10 +42,16 @@ extension AppActionListExtension<M extends Object> on List<AppAction<M>> {
             leadingIcon: group.icon,
             child: Text(group.label),
           ),
-        final AppAction action => MenuItemButton(
-            onPressed: action.onPressed,
-            leadingIcon: action.icon,
-            child: Text(action.label),
+        final AppAction action => TooltipVisibility(
+            visible: action.tooltip != null,
+            child: Tooltip(
+              message: action.tooltip ?? action.label,
+              child: MenuItemButton(
+                onPressed: action.onPressed,
+                leadingIcon: action.icon,
+                child: Text(action.label),
+              ),
+            ),
           ),
       };
     }).toList();
