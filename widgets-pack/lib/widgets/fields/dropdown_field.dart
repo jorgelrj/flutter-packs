@@ -40,6 +40,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final TextStyle? style;
   final bool loading;
   final bool showClearButton;
+  final bool readOnly;
 
   const AppDropDownFormField({
     required this.fetcher,
@@ -76,6 +77,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
     this.style,
     this.loading = false,
     this.showClearButton = true,
+    this.readOnly = false,
     super.key,
   });
 
@@ -569,6 +571,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
                 keyboardType: widget.keyboardType,
                 filled: widget.filled,
                 prefixIcon: widget.prefixIcon,
+                readOnly: widget.readOnly,
                 validator: widget.validator != null
                     ? (_) {
                         return widget.validator!.validate(
