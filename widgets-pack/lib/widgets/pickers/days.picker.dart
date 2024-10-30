@@ -11,7 +11,7 @@ class AppDaysPicker extends StatefulWidget {
   final bool Function(DateTime)? selectableDatePredicate;
   final ValueChanged<DateTime>? onDateChanged;
   final String? Function(DateTime)? tooltipBuilder;
-  final Widget Function(Widget child, [DateTime? date])? dayBuilder;
+  final Widget Function(Widget child, DateTime date)? dayBuilder;
   final bool enabled;
   final DateTimeRange? selectedDisplayRange;
   final Function(MonthAndYear date)? onDisplayedMonthChanged;
@@ -252,60 +252,63 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
                     realIndex - firstWeekDay + 2,
                   );
 
-                  return Center(
-                    child: ValueListenableBuilder<Iterable<DateTime>>(
-                      valueListenable: _datesNotifier,
-                      builder: (context, selectedDates, child) {
-                        final tooltip = widget.tooltipBuilder?.call(date);
-                        final data = _dateData(date);
-                        final child = Center(
-                          child: BodyLarge(
-                            date.day.toString(),
-                          ).color(data.textColor),
-                        );
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Center(
+                        child: ValueListenableBuilder<Iterable<DateTime>>(
+                          valueListenable: _datesNotifier,
+                          builder: (context, selectedDates, child) {
+                            final tooltip = widget.tooltipBuilder?.call(date);
+                            final data = _dateData(date);
+                            final child = Center(
+                              child: BodyLarge(
+                                date.day.toString(),
+                              ).color(data.textColor),
+                            );
 
-                        return InkWell(
-                          key: ValueKey(date),
-                          onTap: () => _onChangeDate(date),
-                          child: TooltipVisibility(
-                            visible: tooltip.isNotBlank,
-                            child: Tooltip(
-                              message: tooltip ?? '',
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  if (data.isRangeStart || data.isRangeEnd || data.isBetweenRange)
-                                    Align(
-                                      alignment: data.isBetweenRange
-                                          ? Alignment.center
-                                          : data.isRangeStart
-                                              ? Alignment.centerRight
-                                              : Alignment.centerLeft,
-                                      child: Container(
-                                        height: 40,
-                                        width: data.isBetweenRange ? 60 : 30,
-                                        decoration: BoxDecoration(
-                                          color: context.colorScheme.primary.withOpacity(0.5),
+                            return InkWell(
+                              key: ValueKey(date),
+                              onTap: () => _onChangeDate(date),
+                              child: TooltipVisibility(
+                                visible: tooltip.isNotBlank,
+                                child: Tooltip(
+                                  message: tooltip ?? '',
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      if (data.isRangeStart || data.isRangeEnd || data.isBetweenRange)
+                                        Align(
+                                          alignment: data.isBetweenRange
+                                              ? Alignment.center
+                                              : data.isRangeStart
+                                                  ? Alignment.centerRight
+                                                  : Alignment.centerLeft,
+                                          child: Container(
+                                            height: 40,
+                                            width:
+                                                data.isBetweenRange ? constraints.maxWidth : constraints.maxWidth / 2,
+                                            color: context.colorScheme.primary.withOpacity(0.5),
+                                          ),
                                         ),
+                                      Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(color: data.borderColor),
+                                          color: data.backgroundColor,
+                                        ),
+                                        child: widget.dayBuilder?.call(child, date) ?? child,
                                       ),
-                                    ),
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: data.borderColor),
-                                      color: data.backgroundColor,
-                                    ),
-                                    child: widget.dayBuilder?.call(child, date) ?? child,
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   );
                 },
               );

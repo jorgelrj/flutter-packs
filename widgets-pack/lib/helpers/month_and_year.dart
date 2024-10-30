@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:extensions_pack/extensions_pack.dart';
-import 'package:flutter/material.dart';
 
 class MonthAndYear extends Equatable {
   final int month;
@@ -18,54 +17,42 @@ class MonthAndYear extends Equatable {
     );
   }
 
+  factory MonthAndYear.fromDate(Date dateTime) {
+    return MonthAndYear(
+      month: dateTime.month,
+      year: dateTime.year,
+    );
+  }
+
   @override
   List<Object?> get props => [
         month,
         year,
       ];
 
-  DateTime get monthStart => DateTime.utc(year, month);
+  Date get monthStart => Date(year, month);
 
-  DateTime get monthEnd {
-    return DateTime.utc(
+  Date get monthEnd {
+    return Date(
       year,
       month,
       monthStart.daysInMonth,
-      23,
-      59,
-      59,
-      999,
     );
   }
 
-  DateTimeRange get monthRange {
-    return DateTimeRange(
+  DateRange get monthRange {
+    return DateRange(
       start: monthStart,
       end: monthEnd,
     );
   }
 
-  DateTimeRange get visibleCalendarRange {
-    final start = monthStart.subtract(
-      Duration(days: monthStart.weekday - 1),
-    );
+  DateRange get visibleCalendarRange {
+    final start = monthStart.addDays(-(monthStart.weekday - 1));
 
-    final end = monthEnd.add(
-      Duration(days: 7 - monthEnd.weekday),
-    );
+    final end = monthEnd.addDays(7 - monthEnd.weekday);
 
-    return DateTimeRange(
-      start: DateTime.utc(start.year, start.month, start.day),
-      end: DateTime.utc(
-        end.year,
-        end.month,
-        end.day,
-        23,
-        59,
-        59,
-        999,
-      ),
-    );
+    return DateRange(start: start, end: end);
   }
 
   bool get isCurrentMonthAndYear {
@@ -92,6 +79,8 @@ class MonthAndYear extends Equatable {
   }
 
   DateTime toDateTime() => DateTime.utc(year, month);
+
+  Date toDate() => Date(year, month);
 
   MonthAndYear previousMonth() {
     if (month == 1) {

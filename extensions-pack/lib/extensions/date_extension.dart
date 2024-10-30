@@ -40,11 +40,52 @@ extension DateExtension on Date {
     return sunday;
   }
 
+  DateRange buildWeekRange({int startWeekday = DateTime.monday}) {
+    Date start = this;
+
+    while (start.weekday != startWeekday) {
+      start = start.addDays(-1);
+    }
+
+    final end = start.addDays(6);
+
+    return DateRange(start: start, end: end);
+  }
+
   bool isBetween(DateRange range) {
     return this >= range.start && this <= range.end;
   }
 
   bool isSameDayAs(DateTime date) {
     return year == date.year && month == date.month && day == date.day;
+  }
+}
+
+extension DateRangeExtension on DateRange {
+  Date get middle {
+    final days = duration.inDays;
+    final middle = start.addDays(days ~/ 2);
+
+    return middle;
+  }
+
+  bool isWithin(DateRange range) {
+    return start.isAfter(range.start) && end.isBefore(range.end);
+  }
+
+  List<Date> get days {
+    final days = <Date>[];
+    for (var i = start; i <= end; i = i.addDays(1)) {
+      days.add(i);
+    }
+
+    return days;
+  }
+
+  String formatBy(DateFormat dateFormat) {
+    return [
+      start.formatBy(dateFormat),
+      end.formatBy(dateFormat),
+    ].join(' - ');
   }
 }

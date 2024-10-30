@@ -10,7 +10,7 @@ dependencies:
   chewie: ^1.8.5
   equatable: ^2.0.5
 #  extensions_pack: { path: ../extensions-pack }
-  extensions_pack: ^2.4.0
+  extensions_pack: ^2.4.1
   flutter: { sdk: flutter }
   flutter_spinkit: ^5.2.1
   intl: ^0.19.0

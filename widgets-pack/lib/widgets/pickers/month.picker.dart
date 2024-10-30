@@ -383,7 +383,9 @@ class _PickerState extends State<_Picker> {
                     isSelectedDay: month == MonthAndYear.fromDateTime(widget.currentDate),
                     onChanged: (date) {
                       _monthYearNotifier.value = date;
-                      widget.onChanged(date.monthStart);
+                      widget.onChanged(
+                        date.monthStart.toDateTime(),
+                      );
                     },
                   );
                 },

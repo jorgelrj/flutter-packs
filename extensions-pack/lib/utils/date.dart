@@ -296,3 +296,13 @@ extension DateTimeDate on DateTime {
   /// are all zero).
   bool get isDate => isUtc && (millisecondsSinceEpoch % Duration.millisecondsPerDay) == 0;
 }
+
+extension DateTimeRangeDateRange on DateTimeRange {
+  /// Extracts the calendar date range from this `DateTimeRange`.
+  DateRange toDateRange() {
+    return DateRange(
+      start: start.toDate(),
+      end: end.toDate(),
+    );
+  }
+}
