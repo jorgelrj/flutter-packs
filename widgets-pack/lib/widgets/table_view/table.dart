@@ -729,108 +729,105 @@ class _TableViewState<M extends Object> extends State<_TableView<M>> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int?>(
-      valueListenable: widget.hoveredRowNotifier,
-      builder: (context, hoveredIndex, child) {
-        return TableView.builder(
-          columnCount: widget.columns.length,
-          rowCount: widget.pageSize,
-          pinnedRowCount: 1,
-          pinnedColumnCount: widget.config.fixedColumns,
-          horizontalDetails: ScrollableDetails.horizontal(
-            controller: widget.horizontalScrollController,
-          ),
-          verticalDetails: ScrollableDetails.vertical(
-            controller: widget.verticalScrollController,
-          ),
-          columnBuilder: (index) {
-            final column = widget.columns.elementAt(index);
-            final isLast = index == widget.columns.length - 1;
-
-            return TableSpan(
-              extent: isLast
-                  ? MaxSpanExtent(const RemainingSpanExtent(), FixedTableSpanExtent(column.width))
-                  : FixedTableSpanExtent(column.width),
-            );
-          },
-          rowBuilder: (index) {
-            final hovered = hoveredIndex == index;
-            final isHeader = index == 0;
-
-            return TableSpan(
-              cursor: isHeader ? SystemMouseCursors.basic : SystemMouseCursors.click,
-              backgroundDecoration: TableSpanDecoration(
-                color: hovered ? context.colorScheme.surfaceContainer : null,
-                border: SpanBorder(
-                  trailing: BorderSide(
-                    color: context.colorScheme.onSurfaceVariant,
-                    width: 0.5,
-                  ),
-                ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: _loadingNotifier,
+      builder: (context, loading, child) {
+        return ValueListenableBuilder<int?>(
+          valueListenable: widget.hoveredRowNotifier,
+          builder: (context, hoveredIndex, child) {
+            return TableView.builder(
+              key: ValueKey(('table-view', loading)),
+              columnCount: widget.columns.length,
+              rowCount: widget.pageSize,
+              pinnedRowCount: 1,
+              pinnedColumnCount: widget.config.fixedColumns,
+              horizontalDetails: ScrollableDetails.horizontal(
+                controller: widget.horizontalScrollController,
               ),
-              onEnter: (event) {
-                if (isHeader) {
-                  return;
-                }
+              verticalDetails: ScrollableDetails.vertical(
+                controller: widget.verticalScrollController,
+              ),
+              columnBuilder: (index) {
+                final column = widget.columns.elementAt(index);
+                final isLast = index == widget.columns.length - 1;
 
-                widget.hoveredRowNotifier.value = index;
+                return TableSpan(
+                  extent: isLast
+                      ? MaxSpanExtent(
+                          const RemainingSpanExtent(),
+                          FixedTableSpanExtent(column.width),
+                        )
+                      : FixedTableSpanExtent(column.width),
+                );
               },
-              onExit: (event) {
-                if (hoveredIndex == index) {
-                  widget.hoveredRowNotifier.value = null;
-                }
-              },
-              extent: const FixedTableSpanExtent(_columnHeight),
-              recognizerFactories: _buildRowRecognizers(index),
-            );
-          },
-          cellBuilder: (context, vicinity) {
-            final column = widget.columns[vicinity.column];
+              rowBuilder: (index) {
+                final hovered = !loading && hoveredIndex == index;
+                final isHeader = index == 0;
 
-            if (vicinity.row == 0) {
-              return TableViewCell(
-                child: column.labelBuilder(context),
-              );
-            }
-
-            return TableViewCell(
-              child: AnimatedBuilder(
-                animation: widget.controller,
-                builder: (context, child) {
-                  final item = widget.controller.currentPageItems.elementAtOrNull(
-                    vicinity.row - 1,
-                  );
-
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: ValueListenableBuilder<bool>(
-                          valueListenable: _loadingNotifier,
-                          builder: (context, loading, child) {
-                            if (loading) {
-                              return Skeletonizer(
-                                child: Text(
-                                  BoneMock.fullName,
-                                ),
-                              );
-                            }
-
-                            if (item == null) {
-                              return const SizedBox();
-                            }
-
-                            return AppTableViewColumnBuilder<M>(
-                              column: column,
-                              item: item,
-                            );
-                          },
-                        ),
+                return TableSpan(
+                  cursor: isHeader ? SystemMouseCursors.basic : SystemMouseCursors.click,
+                  backgroundDecoration: TableSpanDecoration(
+                    color: hovered ? context.colorScheme.surfaceContainer : null,
+                    border: SpanBorder(
+                      trailing: BorderSide(
+                        color: context.colorScheme.onSurfaceVariant,
+                        width: 0.5,
                       ),
-                    ],
+                    ),
+                  ),
+                  onEnter: (event) {
+                    if (isHeader) {
+                      return;
+                    }
+
+                    widget.hoveredRowNotifier.value = index;
+                  },
+                  onExit: (event) {
+                    if (hoveredIndex == index) {
+                      widget.hoveredRowNotifier.value = null;
+                    }
+                  },
+                  extent: const FixedTableSpanExtent(_columnHeight),
+                  recognizerFactories: _buildRowRecognizers(index),
+                );
+              },
+              cellBuilder: (context, vicinity) {
+                final column = widget.columns[vicinity.column];
+
+                if (vicinity.row == 0) {
+                  return TableViewCell(
+                    child: column.labelBuilder(context),
                   );
-                },
-              ),
+                }
+
+                return TableViewCell(
+                  child: AnimatedBuilder(
+                    animation: widget.controller,
+                    builder: (context, child) {
+                      final item = widget.controller.currentPageItems.elementAtOrNull(
+                        vicinity.row - 1,
+                      );
+
+                      if (loading) {
+                        return Skeletonizer(
+                          child: Text(
+                            BoneMock.fullName,
+                          ),
+                        );
+                      }
+
+                      if (item == null) {
+                        return const SizedBox();
+                      }
+
+                      return AppTableViewColumnBuilder<M>(
+                        column: column,
+                        item: item,
+                      );
+                    },
+                  ),
+                );
+              },
             );
           },
         );
