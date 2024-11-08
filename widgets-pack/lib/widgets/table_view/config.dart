@@ -13,6 +13,7 @@ class AppTableViewConfig<M extends Object> extends Equatable {
   final int pageSize;
   final int fixedColumns;
   final List<AppAction<M>> Function(M)? persistentTrailingActions;
+  final Set<int> pageSizes;
 
   const AppTableViewConfig({
     TableActionsType? actionType,
@@ -25,6 +26,7 @@ class AppTableViewConfig<M extends Object> extends Equatable {
     this.pageSize = 10,
     this.fixedColumns = 0,
     this.persistentTrailingActions,
+    this.pageSizes = const {10},
   }) : actionType = actionType ?? (actions == null ? TableActionsType.none : TableActionsType.multi);
 
   @override
@@ -36,5 +38,6 @@ class AppTableViewConfig<M extends Object> extends Equatable {
         pageSize,
         fixedColumns,
         persistentTrailingActions,
+        pageSizes,
       ];
 }

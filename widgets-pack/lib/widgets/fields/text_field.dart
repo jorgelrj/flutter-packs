@@ -92,6 +92,7 @@ class AppTextFormField extends StatefulWidget {
   final TextAlign textAlign;
   final TextInputAction? textInputAction;
   final FormFieldValidator<String>? validator;
+  final VoidCallback? onTap;
 
   const AppTextFormField({
     this.autofillHints,
@@ -147,6 +148,7 @@ class AppTextFormField extends StatefulWidget {
     this.textAlign = TextAlign.start,
     this.textInputAction,
     this.validator,
+    this.onTap,
     super.key,
   });
 
@@ -207,7 +209,8 @@ class AppTextFormField extends StatefulWidget {
         suffixText = null,
         suffixStyle = null,
         textInputAction = TextInputAction.search,
-        validator = null;
+        validator = null,
+        onTap = null;
 
   static Duration get defaultDebounceTime => const Duration(milliseconds: 350);
 
@@ -325,6 +328,7 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
               ],
               TextFormField(
                 key: _inputKey,
+                onTap: widget.onTap,
                 autofillHints: widget.autofillHints,
                 autovalidateMode: widget.autoValidateMode,
                 controller: _controller,

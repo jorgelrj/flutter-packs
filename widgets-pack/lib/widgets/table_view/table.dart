@@ -218,14 +218,44 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                     ValueListenableBuilder<int>(
                       valueListenable: _pageSizeNotifier,
                       builder: (context, size, child) {
-                        return IntrinsicWidth(
-                          child: AppTextFormField(
-                            readOnly: true,
-                            initialValue: size.toString(),
-                            filled: true,
-                            fillColor: context.colorScheme.surfaceBright,
-                            border: const OutlineInputBorder(),
+                        final configSizes = Set.of(widget.config.pageSizes);
+                        final availableSizes = configSizes..remove(size);
+
+                        return MenuAnchor(
+                          style: const MenuStyle(
+                            maximumSize: WidgetStatePropertyAll(Size.fromWidth(50)),
                           ),
+                          menuChildren: [
+                            ...availableSizes.map((size) {
+                              return ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 45,
+                                ),
+                                child: MenuItemButton(
+                                  onPressed: () {
+                                    widget.controller.pageSize = size;
+                                    widget.controller.reload();
+                                  },
+                                  child: Text(
+                                    size.toString(),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              );
+                            }),
+                          ],
+                          builder: (context, controller, child) {
+                            return IntrinsicWidth(
+                              child: AppTextFormField(
+                                onTap: controller.toggle,
+                                readOnly: true,
+                                initialValue: size.toString(),
+                                filled: true,
+                                fillColor: context.colorScheme.surfaceBright,
+                                border: const OutlineInputBorder(),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),

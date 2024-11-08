@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 
 class AppAction<M extends Object> {
   final String label;
-  final Widget icon;
+  final Widget _icon;
   final void Function()? onPressed;
   final String? tooltip;
 
   const AppAction({
     required this.label,
-    required this.icon,
+    Widget? icon,
     this.onPressed,
     this.tooltip,
-  });
+  }) : _icon = icon ?? const SizedBox();
+
+  Widget get icon => _icon;
 }
 
 class AppActionDivider<M extends Object> extends AppAction<M> {
@@ -27,8 +29,8 @@ class AppActionsGroup<M extends Object> extends AppAction<M> {
 
   const AppActionsGroup({
     required super.label,
-    required super.icon,
     required this.items,
+    super.icon,
   });
 }
 
