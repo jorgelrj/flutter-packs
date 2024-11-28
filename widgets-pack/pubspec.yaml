@@ -1,6 +1,6 @@
 name: widgets_pack
 description: Widgets collection for flutter applications
-version: 0.4.7
+version: 0.4.12
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -10,7 +10,7 @@ dependencies:
   chewie: ^1.8.5
   equatable: ^2.0.5
 #  extensions_pack: { path: ../extensions-pack }
-  extensions_pack: ^2.4.1
+  extensions_pack: ^2.4.2
   flutter: { sdk: flutter }
   flutter_spinkit: ^5.2.1
   intl: ^0.19.0

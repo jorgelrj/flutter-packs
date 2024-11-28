@@ -32,15 +32,25 @@ class _AppTextFilterState<M extends Object> extends _AppFilterState<M> {
 
   final _focusNode = FocusNode();
 
+  late String _valueOnOpen = _textController.text;
+
   void _focusNodeListener() {
     if (!_focusNode.hasFocus) {
       _setValue();
     }
   }
 
-  void _setValue() {
-    widget.onChanged(_textController.text);
+  void _setValue([bool force = false]) {
+    final text = _textController.text;
+
+    if (text == _valueOnOpen && !force) {
+      return;
+    }
+
+    widget.onChanged(text);
     _overlayController.hide();
+
+    AppTableView.maybeOf(context)?.controller.reload();
   }
 
   @override
@@ -114,12 +124,13 @@ class _AppTextFilterState<M extends Object> extends _AppFilterState<M> {
               showCheckmark: false,
               deleteIconColor: context.colorScheme.onPrimary,
               onSelected: (_) {
+                _valueOnOpen = _textController.text;
                 _overlayController.show();
               },
               onDeleted: hasText
                   ? () {
                       _textController.clear();
-                      _setValue();
+                      _setValue(true);
                     }
                   : null,
             );

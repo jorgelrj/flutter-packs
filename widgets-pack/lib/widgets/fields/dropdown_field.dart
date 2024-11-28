@@ -41,6 +41,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final bool loading;
   final bool showClearButton;
   final bool readOnly;
+  final Color? barrierColor;
 
   const AppDropDownFormField({
     required this.fetcher,
@@ -78,6 +79,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
     this.loading = false,
     this.showClearButton = true,
     this.readOnly = false,
+    this.barrierColor,
     super.key,
   });
 
@@ -280,6 +282,8 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
       return;
     }
 
+    final barrierColor = widget.barrierColor ?? context.wpWidgetsConfig.dropdownInput?.barrierColor;
+
     _overlayEntry ??= OverlayEntry(
       maintainState: true,
       canSizeOverlay: true,
@@ -291,22 +295,32 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
 
         final openAbove = availableSpace < 128;
 
-        return Positioned(
-          width: widgetSize.width,
-          child: CompositedTransformFollower(
-            link: _layerLink,
-            targetAnchor: openAbove ? Alignment.topLeft : Alignment.bottomLeft,
-            offset: Offset(0, openAbove ? -widgetSize.height : 0),
-            showWhenUnlinked: false,
-            child: Material(
-              type: MaterialType.transparency,
-              child: _overlayContent(
-                maxHeight: maxHeight,
-                availableSpace: availableSpace,
-                openAbove: openAbove,
+        return Stack(
+          children: [
+            if (barrierColor != null)
+              Container(
+                height: double.infinity,
+                width: double.infinity,
+                color: barrierColor,
+              ),
+            Positioned(
+              width: widgetSize.width,
+              child: CompositedTransformFollower(
+                link: _layerLink,
+                targetAnchor: openAbove ? Alignment.topLeft : Alignment.bottomLeft,
+                offset: Offset(0, openAbove ? -widgetSize.height : 0),
+                showWhenUnlinked: false,
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: _overlayContent(
+                    maxHeight: maxHeight,
+                    availableSpace: availableSpace,
+                    openAbove: openAbove,
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         );
       },
     );
@@ -401,10 +415,26 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
 
     if (oldWidget.handler != widget.handler) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _selectedItemNotifier.value = switch (widget.handler) {
-          final AppSingleItemHandler<T> handler => [handler.initialValue].whereNotNull().toList(),
-          final AppMultipleItemsHandler<T> handler => handler.initialValue,
-        };
+        switch (widget.handler) {
+          case final AppSingleItemHandler<T> handler:
+            final currentItem = _selectedItemNotifier.value.firstOrNull;
+            final handlerItem = handler.initialValue;
+
+            if (handlerItem != null && currentItem != null && !handler.compare(currentItem, handlerItem)) {
+              _selectedItemNotifier.value = [handlerItem];
+            }
+
+            if (handlerItem == null) {
+              _selectedItemNotifier.value = [];
+            }
+
+            if (currentItem == null) {
+              _selectedItemNotifier.value = [handlerItem!];
+            }
+
+          case final AppMultipleItemsHandler<T> handler:
+            _selectedItemNotifier.value = handler.initialValue;
+        }
 
         if (!_textFocusNode.hasFocus) {
           _setTextValue();

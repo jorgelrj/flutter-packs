@@ -64,6 +64,7 @@ class _AppSearchFilterState<T extends Object, M extends Object> extends _AppFilt
     if (_overlayController.isShowing) {
       _overlayController.hide();
     }
+    AppTableView.maybeOf(context)?.controller.reload();
   }
 
   @override

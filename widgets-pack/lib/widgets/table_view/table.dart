@@ -24,20 +24,28 @@ class AppTableView<M extends Object> extends StatefulWidget {
 
   @override
   State<AppTableView<M>> createState() => _AppTableViewState<M>();
+
+  static _AppTableViewState<M> of<M extends Object>(BuildContext context) {
+    return context.findAncestorStateOfType<_AppTableViewState<M>>()!;
+  }
+
+  static _AppTableViewState<M>? maybeOf<M extends Object>(BuildContext context) {
+    return context.findAncestorStateOfType<_AppTableViewState<M>>();
+  }
 }
 
 class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
   late final _pageSizeNotifier = ValueNotifier<int>(
-    widget.controller.pageSize,
+    controller.pageSize,
   );
   late final _pageNotifier = ValueNotifier<int>(
-    widget.controller.currentPage,
+    controller.currentPage,
   );
   late final _hasSelectionNotifier = ValueNotifier<bool>(
-    widget.controller.selectedItems.isNotEmpty,
+    controller.selectedItems.isNotEmpty,
   );
   late final _showCheckBoxNotifier = ValueNotifier<bool>(
-    widget.controller.actionsType != TableActionsType.none,
+    controller.actionsType != TableActionsType.none,
   );
 
   final _hoveredRowNotifier = ValueNotifier<int?>(null);
@@ -49,40 +57,43 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
   late final _checkboxScrollController = _linkedScrollGroup.addAndGet();
   late final _actionsScrollController = _linkedScrollGroup.addAndGet();
 
+  AppTableViewController<M> get controller => widget.controller;
+
+  AppTableViewConfig<M> get config => widget.config;
+
   void _controllerListener() {
-    _pageSizeNotifier.value = widget.controller.pageSize;
-    _hasSelectionNotifier.value = widget.controller.selectedItems.isNotEmpty;
-    _showCheckBoxNotifier.value = widget.controller.actionsType != TableActionsType.none;
-    _pageNotifier.value = widget.controller.currentPage;
+    _pageSizeNotifier.value = controller.pageSize;
+    _hasSelectionNotifier.value = controller.selectedItems.isNotEmpty;
+    _showCheckBoxNotifier.value = controller.actionsType != TableActionsType.none;
+    _pageNotifier.value = controller.currentPage;
   }
 
   @override
   void initState() {
     super.initState();
 
-    widget.controller
-      ..actionsType = widget.config.actionType
-      ..pageSize = widget.config.pageSize;
-
-    widget.controller.addListener(_controllerListener);
+    controller
+      ..actionsType = config.actionType
+      ..pageSize = config.pageSize
+      ..addListener(_controllerListener);
   }
 
   @override
   void didUpdateWidget(covariant AppTableView<M> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.config.actionType != widget.config.actionType) {
-      widget.controller.actionsType = widget.config.actionType;
+    if (oldWidget.config.actionType != config.actionType) {
+      controller.actionsType = config.actionType;
     }
 
-    if (oldWidget.config.pageSize != widget.config.pageSize) {
-      widget.controller.pageSize = widget.config.pageSize;
+    if (oldWidget.config.pageSize != config.pageSize) {
+      controller.pageSize = config.pageSize;
     }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_controllerListener);
+    controller.removeListener(_controllerListener);
 
     if (widget.horizontalScrollController == null) _horizontalScrollController.dispose();
 
@@ -100,30 +111,28 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
 
   @override
   Widget build(BuildContext context) {
-    final showActionsColumn = (widget.config.showActionsAsTrailingIcon && widget.config.actions != null) ||
-        widget.config.persistentTrailingActions != null;
-
-    final showEmptyState =
-        widget.config.emptyStateBuilder != null && !widget.controller.loading && widget.controller.items.isEmpty;
-
-    final showFiltersRow = widget.config.filters.isNotEmpty || widget.config.action != null;
+    final showActionsColumn =
+        (config.showActionsAsTrailingIcon && config.actions != null) || config.persistentTrailingActions != null;
+    final showEmptyState = config.emptyStateBuilder != null && !controller.loading && controller.items.isEmpty;
+    final showFiltersRow = config.filters.isNotEmpty || config.action != null;
 
     return AnimatedBuilder(
-      animation: widget.controller,
+      animation: controller,
       builder: (context, child) {
         return Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             ValueListenableBuilder<bool>(
               valueListenable: _hasSelectionNotifier,
               builder: (context, showActions, child) {
-                if (showActions && widget.config.actions != null) {
+                if (showActions && config.actions != null) {
                   return AnimatedBuilder(
-                    animation: widget.controller,
+                    animation: controller,
                     builder: (context, child) {
                       return AppTableActionsRow(
-                        items: widget.controller.selectedItems,
-                        actions: widget.config.actions,
-                        onClearAll: widget.controller.clearSelection,
+                        items: controller.selectedItems,
+                        actions: config.actions,
+                        onClearAll: controller.clearSelection,
                       );
                     },
                   );
@@ -131,15 +140,15 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
 
                 if (showFiltersRow) {
                   return AppTableFilterRow(
-                    filters: widget.config.filters,
-                    headerAction: widget.config.action,
+                    filters: config.filters,
+                    headerAction: config.action,
                   );
                 }
 
                 return const SizedBox();
               },
             ),
-            if (showEmptyState) widget.config.emptyStateBuilder!(context) else Flexible(child: child!),
+            if (showEmptyState) config.emptyStateBuilder!(context) else Flexible(child: child!),
           ],
         );
       },
@@ -168,7 +177,7 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _CheckBoxesColumn(
-                      controller: widget.controller,
+                      controller: controller,
                       checkboxScrollController: _checkboxScrollController,
                       hoveredRowNotifier: _hoveredRowNotifier,
                       pageSizeNotifier: _pageSizeNotifier,
@@ -184,8 +193,8 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                               horizontalScrollController: _horizontalScrollController,
                               verticalScrollController: _verticalScrollController,
                               columns: widget.columns,
-                              controller: widget.controller,
-                              config: widget.config,
+                              controller: controller,
+                              config: config,
                               pageSize: pageSize + 1,
                               hoveredRowNotifier: _hoveredRowNotifier,
                             );
@@ -196,8 +205,8 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                     if (showActionsColumn)
                       _ActionsColumn(
                         actionsScrollController: _actionsScrollController,
-                        controller: widget.controller,
-                        config: widget.config,
+                        controller: controller,
+                        config: config,
                         hoveredRowNotifier: _hoveredRowNotifier,
                       ),
                   ],
@@ -218,7 +227,7 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                     ValueListenableBuilder<int>(
                       valueListenable: _pageSizeNotifier,
                       builder: (context, size, child) {
-                        final configSizes = Set.of(widget.config.pageSizes);
+                        final configSizes = Set.of(config.pageSizes);
                         final availableSizes = configSizes..remove(size);
 
                         return MenuAnchor(
@@ -233,8 +242,8 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                                 ),
                                 child: MenuItemButton(
                                   onPressed: () {
-                                    widget.controller.pageSize = size;
-                                    widget.controller.reload();
+                                    controller.pageSize = size;
+                                    controller.reload();
                                   },
                                   child: Text(
                                     size.toString(),
@@ -247,6 +256,7 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                           builder: (context, controller, child) {
                             return IntrinsicWidth(
                               child: AppTextFormField(
+                                key: ValueKey(size),
                                 onTap: controller.toggle,
                                 readOnly: true,
                                 initialValue: size.toString(),
@@ -262,19 +272,19 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                     if (isSmallScreen) const Spacer(),
                     AppButton.icon(
                       icon: const Icon(Icons.arrow_back_ios_new),
-                      onPressed: widget.controller.previousPage,
+                      onPressed: controller.previousPage,
                     ),
                     AnimatedBuilder(
-                      animation: widget.controller,
+                      animation: controller,
                       builder: (context, child) {
                         return BodyLarge(
                           [
-                            (widget.controller.pageSize * widget.controller.currentPage) + 1,
+                            (controller.pageSize * controller.currentPage) + 1,
                             '-',
-                            widget.controller.pageSize * (widget.controller.currentPage + 1),
-                            if (widget.controller.isMaxItemsKnown) ...[
+                            controller.pageSize * (controller.currentPage + 1),
+                            if (controller.isMaxItemsKnown) ...[
                               'of',
-                              widget.controller.maxItems,
+                              controller.maxItems,
                             ],
                           ].join(' '),
                         );
@@ -282,7 +292,7 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                     ),
                     AppButton.icon(
                       icon: const Icon(Icons.arrow_forward_ios),
-                      onPressed: widget.controller.nextPage,
+                      onPressed: controller.nextPage,
                     ),
                   ].addSpacingBetween(),
                 );
@@ -463,6 +473,13 @@ class _CheckBoxesColumn<M extends Object> extends StatelessWidget {
                     }
 
                     return Checkbox(
+                      side: WidgetStateBorderSide.resolveWith((states) {
+                        if (states.contains(WidgetState.selected)) {
+                          return BorderSide(color: context.colorScheme.primary);
+                        }
+
+                        return BorderSide(color: context.colorScheme.onSurface);
+                      }),
                       value: selected,
                       onChanged: (value) => controller.handleSelectAll(),
                       visualDensity: VisualDensity.compact,
@@ -501,7 +518,6 @@ class _CheckBoxesColumn<M extends Object> extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                                width: 32,
                                 height: _columnHeight,
                                 child: child,
                               );
@@ -732,102 +748,83 @@ class _TableViewState<M extends Object> extends State<_TableView<M>> {
     return ValueListenableBuilder<bool>(
       valueListenable: _loadingNotifier,
       builder: (context, loading, child) {
-        return ValueListenableBuilder<int?>(
-          valueListenable: widget.hoveredRowNotifier,
-          builder: (context, hoveredIndex, child) {
-            return TableView.builder(
-              key: ValueKey(('table-view', loading)),
-              columnCount: widget.columns.length,
-              rowCount: widget.pageSize,
-              pinnedRowCount: 1,
-              pinnedColumnCount: widget.config.fixedColumns,
-              horizontalDetails: ScrollableDetails.horizontal(
-                controller: widget.horizontalScrollController,
-              ),
-              verticalDetails: ScrollableDetails.vertical(
-                controller: widget.verticalScrollController,
-              ),
-              columnBuilder: (index) {
-                final column = widget.columns.elementAt(index);
-                final isLast = index == widget.columns.length - 1;
+        return TableView.builder(
+          key: const Key('table-view'),
+          columnCount: widget.columns.length,
+          rowCount: widget.pageSize,
+          pinnedRowCount: 1,
+          pinnedColumnCount: widget.config.fixedColumns,
+          horizontalDetails: ScrollableDetails.horizontal(
+            controller: widget.horizontalScrollController,
+          ),
+          verticalDetails: ScrollableDetails.vertical(
+            controller: widget.verticalScrollController,
+          ),
+          columnBuilder: (index) {
+            final column = widget.columns.elementAt(index);
+            final isLast = index == widget.columns.length - 1;
 
-                return TableSpan(
-                  extent: isLast
-                      ? MaxSpanExtent(
-                          const RemainingSpanExtent(),
-                          FixedTableSpanExtent(column.width),
-                        )
-                      : FixedTableSpanExtent(column.width),
-                );
-              },
-              rowBuilder: (index) {
-                final hovered = !loading && hoveredIndex == index;
-                final isHeader = index == 0;
+            return TableSpan(
+              extent: isLast
+                  ? MaxSpanExtent(
+                      const RemainingSpanExtent(),
+                      FixedTableSpanExtent(column.width),
+                    )
+                  : FixedTableSpanExtent(column.width),
+            );
+          },
+          rowBuilder: (index) {
+            final isHeader = index == 0;
 
-                return TableSpan(
-                  cursor: isHeader ? SystemMouseCursors.basic : SystemMouseCursors.click,
-                  backgroundDecoration: TableSpanDecoration(
-                    color: hovered ? context.colorScheme.surfaceContainer : null,
-                    border: SpanBorder(
-                      trailing: BorderSide(
-                        color: context.colorScheme.onSurfaceVariant,
-                        width: 0.5,
-                      ),
-                    ),
+            return TableSpan(
+              cursor: isHeader ? SystemMouseCursors.basic : SystemMouseCursors.click,
+              backgroundDecoration: TableSpanDecoration(
+                border: SpanBorder(
+                  trailing: BorderSide(
+                    color: context.colorScheme.onSurfaceVariant,
+                    width: 0.5,
                   ),
-                  onEnter: (event) {
-                    if (isHeader) {
-                      return;
-                    }
+                ),
+              ),
+              extent: const FixedTableSpanExtent(_columnHeight),
+              recognizerFactories: _buildRowRecognizers(index),
+            );
+          },
+          cellBuilder: (context, vicinity) {
+            final column = widget.columns[vicinity.column];
 
-                    widget.hoveredRowNotifier.value = index;
-                  },
-                  onExit: (event) {
-                    if (hoveredIndex == index) {
-                      widget.hoveredRowNotifier.value = null;
-                    }
-                  },
-                  extent: const FixedTableSpanExtent(_columnHeight),
-                  recognizerFactories: _buildRowRecognizers(index),
-                );
-              },
-              cellBuilder: (context, vicinity) {
-                final column = widget.columns[vicinity.column];
+            if (vicinity.row == 0) {
+              return TableViewCell(
+                child: column.labelBuilder(context),
+              );
+            }
 
-                if (vicinity.row == 0) {
-                  return TableViewCell(
-                    child: column.labelBuilder(context),
+            return TableViewCell(
+              child: AnimatedBuilder(
+                animation: widget.controller,
+                builder: (context, child) {
+                  final item = widget.controller.currentPageItems.elementAtOrNull(
+                    vicinity.row - 1,
                   );
-                }
 
-                return TableViewCell(
-                  child: AnimatedBuilder(
-                    animation: widget.controller,
-                    builder: (context, child) {
-                      final item = widget.controller.currentPageItems.elementAtOrNull(
-                        vicinity.row - 1,
-                      );
+                  if (loading) {
+                    return Skeletonizer(
+                      child: Text(
+                        BoneMock.fullName,
+                      ),
+                    );
+                  }
 
-                      if (loading) {
-                        return Skeletonizer(
-                          child: Text(
-                            BoneMock.fullName,
-                          ),
-                        );
-                      }
+                  if (item == null) {
+                    return const SizedBox();
+                  }
 
-                      if (item == null) {
-                        return const SizedBox();
-                      }
-
-                      return AppTableViewColumnBuilder<M>(
-                        column: column,
-                        item: item,
-                      );
-                    },
-                  ),
-                );
-              },
+                  return AppTableViewColumnBuilder<M>(
+                    column: column,
+                    item: item,
+                  );
+                },
+              ),
             );
           },
         );

@@ -34,7 +34,7 @@ class StringValidator {
       }
 
       if ((value?.length ?? 0) < length) {
-        return message ?? 'This field must have more than ${length - 1} characters';
+        return message ?? 'This field must have at least $length characters';
       }
 
       return null;
