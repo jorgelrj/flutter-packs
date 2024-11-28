@@ -106,6 +106,7 @@ class TextColumn<M extends Object> extends TableColumn<M> {
 class NumberColumn<M extends Object> extends TableColumn<M> {
   final num? Function(M model) value;
   final String? Function(num)? format;
+  final int? maxLines;
 
   const NumberColumn({
     required super.label,
@@ -115,6 +116,7 @@ class NumberColumn<M extends Object> extends TableColumn<M> {
     super.decoration,
     super.nullValuePlaceholder,
     this.format,
+    this.maxLines,
   }) : super(numeric: true);
 
   @override
@@ -122,6 +124,7 @@ class NumberColumn<M extends Object> extends TableColumn<M> {
         ...super.props,
         format,
         value,
+        maxLines,
       ];
 
   @override
@@ -133,7 +136,11 @@ class NumberColumn<M extends Object> extends TableColumn<M> {
 
     final stringValue = numericValue != null ? format?.call(numericValue) ?? numericValue.toString() : '-';
 
-    return Text(stringValue);
+    return Text(
+      stringValue,
+      maxLines: maxLines,
+      overflow: TextOverflow.ellipsis,
+    );
   }
 }
 

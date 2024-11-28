@@ -81,6 +81,16 @@ abstract class AppTableViewController<M extends Object> extends ChangeNotifier {
     return _selectedItems.isNotEmpty && currentPageItems.length == _selectedItems.length;
   }
 
+  void toggleItem(M item) {
+    final index = _items.indexOf(item);
+
+    if (index == -1) {
+      return;
+    }
+
+    handleItemTapAtIndex(index);
+  }
+
   void handleItemTapAtIndex(int index) {
     if (index < 0 || index >= _items.length) {
       return;

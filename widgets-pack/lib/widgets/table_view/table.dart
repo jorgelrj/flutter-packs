@@ -13,12 +13,16 @@ class AppTableView<M extends Object> extends StatefulWidget {
   final List<TableColumn<M>> columns;
   final AppTableViewConfig<M> config;
   final ScrollController? horizontalScrollController;
+  final WidgetBuilder? aboveTableBuilder;
+  final Widget Function(BuildContext context, List<Widget> filters)? filtersBuilder;
 
   const AppTableView({
     required this.controller,
     required this.columns,
     this.config = const AppTableViewConfig(),
     this.horizontalScrollController,
+    this.aboveTableBuilder,
+    this.filtersBuilder,
     super.key,
   });
 
@@ -54,6 +58,8 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
     _hasSelectionNotifier.value = widget.controller.selectedItems.isNotEmpty;
     _showCheckBoxNotifier.value = widget.controller.actionsType != TableActionsType.none;
     _pageNotifier.value = widget.controller.currentPage;
+
+    widget.config.onItemsSelected?.call(widget.controller.selectedItems);
   }
 
   @override
@@ -106,12 +112,14 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
     final showEmptyState =
         widget.config.emptyStateBuilder != null && !widget.controller.loading && widget.controller.items.isEmpty;
 
-    final showFiltersRow = widget.config.filters.isNotEmpty || widget.config.action != null;
+    final showFiltersRow = widget.config.filters.isNotEmpty;
 
     return AnimatedBuilder(
       animation: widget.controller,
       builder: (context, child) {
         return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ValueListenableBuilder<bool>(
               valueListenable: _hasSelectionNotifier,
@@ -124,21 +132,26 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                         items: widget.controller.selectedItems,
                         actions: widget.config.actions,
                         onClearAll: widget.controller.clearSelection,
+                        itemsSelectedTextBuilder: widget.config.itemsSelectedString,
                       );
                     },
                   );
                 }
 
                 if (showFiltersRow) {
-                  return AppTableFilterRow(
-                    filters: widget.config.filters,
-                    headerAction: widget.config.action,
-                  );
+                  return widget.filtersBuilder?.call(
+                        context,
+                        widget.config.filters,
+                      ) ??
+                      AppTableFilterRow(
+                        filters: widget.config.filters,
+                      );
                 }
 
                 return const SizedBox();
               },
             ),
+            if (widget.aboveTableBuilder != null) widget.aboveTableBuilder!(context),
             if (showEmptyState) widget.config.emptyStateBuilder!(context) else Flexible(child: child!),
           ],
         );
@@ -204,90 +217,94 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                 ),
               ),
             ),
-            const Spacing(),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isSmallScreen = constraints.maxWidth < 600;
+            if (widget.config.showPagination) ...[
+              const Spacing(),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isSmallScreen = constraints.maxWidth < 600;
 
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    BodyLarge(
-                      'Rows${isSmallScreen ? '' : ' per page'}',
-                    ),
-                    ValueListenableBuilder<int>(
-                      valueListenable: _pageSizeNotifier,
-                      builder: (context, size, child) {
-                        final configSizes = Set.of(widget.config.pageSizes);
-                        final availableSizes = configSizes..remove(size);
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      BodyLarge(
+                        isSmallScreen
+                            ? context.wpStringsConfig.table.rowsPerPage.short
+                            : context.wpStringsConfig.table.rowsPerPage.long,
+                      ),
+                      ValueListenableBuilder<int>(
+                        valueListenable: _pageSizeNotifier,
+                        builder: (context, size, child) {
+                          final configSizes = Set.of(widget.config.pageSizes);
+                          final availableSizes = configSizes..remove(size);
 
-                        return MenuAnchor(
-                          style: const MenuStyle(
-                            maximumSize: WidgetStatePropertyAll(Size.fromWidth(50)),
-                          ),
-                          menuChildren: [
-                            ...availableSizes.map((size) {
-                              return ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 45,
-                                ),
-                                child: MenuItemButton(
-                                  onPressed: () {
-                                    widget.controller.pageSize = size;
-                                    widget.controller.reload();
-                                  },
-                                  child: Text(
-                                    size.toString(),
-                                    textAlign: TextAlign.center,
+                          return MenuAnchor(
+                            style: const MenuStyle(
+                              maximumSize: WidgetStatePropertyAll(Size.fromWidth(50)),
+                            ),
+                            menuChildren: [
+                              ...availableSizes.map((size) {
+                                return ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 45,
                                   ),
+                                  child: MenuItemButton(
+                                    onPressed: () {
+                                      widget.controller.pageSize = size;
+                                      widget.controller.reload();
+                                    },
+                                    child: Text(
+                                      size.toString(),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ],
+                            builder: (context, controller, child) {
+                              return IntrinsicWidth(
+                                child: AppTextFormField(
+                                  onTap: controller.toggle,
+                                  readOnly: true,
+                                  initialValue: size.toString(),
+                                  filled: true,
+                                  fillColor: context.colorScheme.surfaceBright,
+                                  border: const OutlineInputBorder(),
                                 ),
                               );
-                            }),
-                          ],
-                          builder: (context, controller, child) {
-                            return IntrinsicWidth(
-                              child: AppTextFormField(
-                                onTap: controller.toggle,
-                                readOnly: true,
-                                initialValue: size.toString(),
-                                filled: true,
-                                fillColor: context.colorScheme.surfaceBright,
-                                border: const OutlineInputBorder(),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    if (isSmallScreen) const Spacer(),
-                    AppButton.icon(
-                      icon: const Icon(Icons.arrow_back_ios_new),
-                      onPressed: widget.controller.previousPage,
-                    ),
-                    AnimatedBuilder(
-                      animation: widget.controller,
-                      builder: (context, child) {
-                        return BodyLarge(
-                          [
-                            (widget.controller.pageSize * widget.controller.currentPage) + 1,
-                            '-',
-                            widget.controller.pageSize * (widget.controller.currentPage + 1),
-                            if (widget.controller.isMaxItemsKnown) ...[
-                              'of',
-                              widget.controller.maxItems,
-                            ],
-                          ].join(' '),
-                        );
-                      },
-                    ),
-                    AppButton.icon(
-                      icon: const Icon(Icons.arrow_forward_ios),
-                      onPressed: widget.controller.nextPage,
-                    ),
-                  ].addSpacingBetween(),
-                );
-              },
-            ),
+                            },
+                          );
+                        },
+                      ),
+                      if (isSmallScreen) const Spacer(),
+                      AppButton.icon(
+                        icon: const Icon(Icons.arrow_back_ios_new),
+                        onPressed: widget.controller.previousPage,
+                      ),
+                      AnimatedBuilder(
+                        animation: widget.controller,
+                        builder: (context, child) {
+                          return BodyLarge(
+                            [
+                              (widget.controller.pageSize * widget.controller.currentPage) + 1,
+                              '-',
+                              widget.controller.pageSize * (widget.controller.currentPage + 1),
+                              if (widget.controller.isMaxItemsKnown) ...[
+                                context.wpStringsConfig.table.of,
+                                widget.controller.maxItems,
+                              ],
+                            ].join(' '),
+                          );
+                        },
+                      ),
+                      AppButton.icon(
+                        icon: const Icon(Icons.arrow_forward_ios),
+                        onPressed: widget.controller.nextPage,
+                      ),
+                    ].addSpacingBetween(),
+                  );
+                },
+              )
+            ],
           ],
         ),
       ),
@@ -379,17 +396,18 @@ class _ActionsColumn<M extends Object> extends StatelessWidget {
                                         );
                                       }
                                     }),
-                                    MenuAnchor(
-                                      menuChildren: [
-                                        ...config.actions!([item]).toAnchorChildren(),
-                                      ],
-                                      builder: (context, controller, child) {
-                                        return AppButton.icon(
-                                          onPressed: controller.toggle,
-                                          icon: const Icon(Icons.more_horiz),
-                                        );
-                                      },
-                                    ),
+                                    if (config.actions != null)
+                                      MenuAnchor(
+                                        menuChildren: [
+                                          ...config.actions!([item]).toAnchorChildren(),
+                                        ],
+                                        builder: (context, controller, child) {
+                                          return AppButton.icon(
+                                            onPressed: controller.toggle,
+                                            icon: const Icon(Icons.more_horiz),
+                                          );
+                                        },
+                                      ),
                                   ]
                                 : [],
                           ),
@@ -429,6 +447,7 @@ class _CheckBoxesColumn<M extends Object> extends StatelessWidget {
       valueListenable: pageSizeNotifier,
       builder: (context, pageSize, child) {
         return Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             ValueListenableBuilder<bool>(
               valueListenable: showCheckBoxNotifier,

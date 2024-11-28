@@ -4,7 +4,6 @@ import 'package:widgets_pack/widgets_pack.dart';
 
 class AppTableViewConfig<M extends Object> extends Equatable {
   final List<Widget> filters;
-  final AppButtonConfig? action;
   final List<AppAction<M>> Function(List<M>)? actions;
   final TableActionsType actionType;
   final bool showActionsAsTrailingIcon;
@@ -14,12 +13,14 @@ class AppTableViewConfig<M extends Object> extends Equatable {
   final int fixedColumns;
   final List<AppAction<M>> Function(M)? persistentTrailingActions;
   final Set<int> pageSizes;
+  final String Function(int)? itemsSelectedString;
+  final ValueChanged<List<M>>? onItemsSelected;
+  final bool showPagination;
 
   const AppTableViewConfig({
     TableActionsType? actionType,
     this.filters = const [],
     this.actions,
-    this.action,
     this.showActionsAsTrailingIcon = false,
     this.onDoubleTapRow,
     this.emptyStateBuilder,
@@ -27,17 +28,22 @@ class AppTableViewConfig<M extends Object> extends Equatable {
     this.fixedColumns = 0,
     this.persistentTrailingActions,
     this.pageSizes = const {10},
+    this.itemsSelectedString,
+    this.onItemsSelected,
+    this.showPagination = true,
   }) : actionType = actionType ?? (actions == null ? TableActionsType.none : TableActionsType.multi);
 
   @override
   List<Object?> get props => [
         filters,
-        action,
         actionType,
         showActionsAsTrailingIcon,
         pageSize,
         fixedColumns,
         persistentTrailingActions,
         pageSizes,
+        itemsSelectedString,
+        onItemsSelected,
+        showPagination,
       ];
 }
