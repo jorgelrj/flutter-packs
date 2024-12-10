@@ -44,16 +44,22 @@ class WPStringsConfig extends Equatable {
 class WPTableStringsConfig extends Equatable {
   final String noItemsFound;
   final String Function(int) itemsSelected;
+  final ({String short, String long}) rowsPerPage;
+  final String of;
 
   const WPTableStringsConfig({
     required this.noItemsFound,
     required this.itemsSelected,
+    required this.rowsPerPage,
+    required this.of,
   });
 
   factory WPTableStringsConfig.defaultConfig() {
     return WPTableStringsConfig(
       noItemsFound: 'No items found',
       itemsSelected: (int count) => '$count selected',
+      rowsPerPage: (short: 'Rows', long: 'Rows per page'),
+      of: 'of',
     );
   }
 

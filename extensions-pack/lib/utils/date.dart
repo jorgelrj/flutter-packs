@@ -4,12 +4,9 @@ import 'package:flutter/material.dart';
 ///
 /// Uses an UTC [DateTime] for all calculations, so has the same behavior and
 /// limits as that.
-// Comment out the following line until extension types are released.
-// extension type Date._(DateTime _time) { /*
-class Date {
+class Date implements Comparable<Date> {
   final DateTime _time;
 
-  //*/
   /// Calendar date of the [year], [month] and [day].
   ///
   /// The [month] and [day] are normalized to be in the range 1 through 12
@@ -230,6 +227,13 @@ class Date {
 
   /// Days between 0000-01-01 and 1970-01-01
   static const int _zeroDayOfEpoch = 719528;
+
+  @override
+  int compareTo(Date other) {
+    return _daysSinceEpoch.compareTo(other._daysSinceEpoch);
+  }
+
+  int get millisecondsSinceEpoch => _time.millisecondsSinceEpoch;
 }
 
 class DateRange {

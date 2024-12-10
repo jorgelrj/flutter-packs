@@ -4,16 +4,16 @@ import 'package:intl/intl.dart';
 import 'package:widgets_pack/widgets_pack.dart';
 
 class AppDaysPicker extends StatefulWidget {
-  final AppItemsHandler<DateTime> handler;
-  final DateTime firstDate;
-  final DateTime lastDate;
-  final DateTime? initialDate;
-  final bool Function(DateTime)? selectableDatePredicate;
-  final ValueChanged<DateTime>? onDateChanged;
-  final String? Function(DateTime)? tooltipBuilder;
-  final Widget Function(Widget child, DateTime date)? dayBuilder;
+  final AppItemsHandler<Date> handler;
+  final Date firstDate;
+  final Date lastDate;
+  final Date? initialDate;
+  final bool Function(Date)? selectableDatePredicate;
+  final ValueChanged<Date>? onDateChanged;
+  final String? Function(Date)? tooltipBuilder;
+  final Widget Function(Widget child, Date date)? dayBuilder;
   final bool enabled;
-  final DateTimeRange? selectedDisplayRange;
+  final DateRange? selectedDisplayRange;
   final Function(MonthAndYear date)? onDisplayedMonthChanged;
   final bool showTitle;
 
@@ -40,20 +40,20 @@ class AppDaysPicker extends StatefulWidget {
 class _AppDaysPickerState extends State<AppDaysPicker> {
   static const _weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-  late final ValueNotifier<Iterable<DateTime>> _datesNotifier;
+  late final ValueNotifier<Iterable<Date>> _datesNotifier;
   late final ValueNotifier<MonthAndYear> _monthYearNotifier;
 
   void _datesListener() {
     widget.handler.onListChanged(_datesNotifier.value.toList());
   }
 
-  void _onChangeDate(DateTime date) {
+  void _onChangeDate(Date date) {
     if (!widget.enabled) {
       return;
     }
 
     final selectedDates = _datesNotifier.value;
-    final isSelected = selectedDates.any((d) => d.isSameDayAs(date));
+    final isSelected = selectedDates.any((d) => d == date);
 
     final isSelectable = widget.selectableDatePredicate?.call(date) ?? true;
 
@@ -62,7 +62,7 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
     }
 
     final isBeforeStart = date.isBefore(widget.firstDate);
-    final isSameAsStart = date.isSameDayAs(widget.firstDate);
+    final isSameAsStart = date == widget.firstDate;
 
     if (isBeforeStart && !isSameAsStart) {
       return;
@@ -70,13 +70,13 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
 
     if (isSelected) {
       _datesNotifier.value = switch (widget.handler) {
-        (final AppSingleItemHandler<DateTime> _) => [],
-        (final AppMultipleItemsHandler<DateTime> _) => selectedDates.where((it) => it != date),
+        (final AppSingleItemHandler<Date> _) => [],
+        (final AppMultipleItemsHandler<Date> _) => selectedDates.where((it) => it != date),
       };
     } else {
       _datesNotifier.value = switch (widget.handler) {
-        (final AppSingleItemHandler<DateTime> _) => [date],
-        (final AppMultipleItemsHandler<DateTime> _) => [...selectedDates, date],
+        (final AppSingleItemHandler<Date> _) => [date],
+        (final AppMultipleItemsHandler<Date> _) => [...selectedDates, date],
       };
     }
 
@@ -90,14 +90,14 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
     bool isRangeStart,
     bool isRangeEnd,
     bool isBetweenRange,
-  }) _dateData(DateTime date) {
+  }) _dateData(Date date) {
     final selectedDisplayRange = widget.selectedDisplayRange;
 
-    final isSelected = selectedDisplayRange == null && _datesNotifier.value.any((d) => d.isSameDayAs(date));
+    final isSelected = selectedDisplayRange == null && _datesNotifier.value.any((d) => d == date);
     final isToday = date.isToday;
-    final isDisabled = !date.isSameDayAs(widget.firstDate) && date.isBefore(widget.firstDate);
-    final isRangeStart = selectedDisplayRange?.start.isSameDayAs(date) ?? false;
-    final isRangeEnd = selectedDisplayRange?.end.isSameDayAs(date) ?? false;
+    final isDisabled = date != widget.firstDate && date.isBefore(widget.firstDate);
+    final isRangeStart = selectedDisplayRange?.start == date ?? false;
+    final isRangeEnd = selectedDisplayRange?.end == date ?? false;
 
     final isBetweenRange = selectedDisplayRange != null &&
         date.isAfter(selectedDisplayRange.start) &&
@@ -124,13 +124,13 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
     super.initState();
 
     _datesNotifier = switch (widget.handler) {
-      (final AppSingleItemHandler<DateTime> handler) =>
+      (final AppSingleItemHandler<Date> handler) =>
         ValueNotifier([widget.initialDate ?? handler.initialValue].whereNotNull()),
-      (final AppMultipleItemsHandler<DateTime> handler) => ValueNotifier(handler.initialValue),
+      (final AppMultipleItemsHandler<Date> handler) => ValueNotifier(handler.initialValue),
     };
 
     _monthYearNotifier = ValueNotifier(
-      MonthAndYear.fromDateTime(_datesNotifier.value.firstOrNull ?? DateTime.now()),
+      MonthAndYear.fromDate(_datesNotifier.value.firstOrNull ?? Date.today()),
     );
 
     _monthYearNotifier.addListener(() {
@@ -144,14 +144,14 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
   void didUpdateWidget(covariant AppDaysPicker oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.initialDate != null && MonthAndYear.fromDateTime(widget.initialDate!) != _monthYearNotifier.value) {
-      _monthYearNotifier.value = MonthAndYear.fromDateTime(widget.initialDate!);
+    if (widget.initialDate != null && MonthAndYear.fromDate(widget.initialDate!) != _monthYearNotifier.value) {
+      _monthYearNotifier.value = MonthAndYear.fromDate(widget.initialDate!);
     }
 
     if (widget.handler != oldWidget.handler) {
       _datesNotifier.value = switch (widget.handler) {
-        (final AppSingleItemHandler<DateTime> handler) => [handler.initialValue].whereNotNull(),
-        (final AppMultipleItemsHandler<DateTime> handler) => handler.initialValue,
+        (final AppSingleItemHandler<Date> handler) => [handler.initialValue].whereNotNull(),
+        (final AppMultipleItemsHandler<Date> handler) => handler.initialValue,
       };
     }
   }
@@ -199,8 +199,8 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
           ValueListenableBuilder<MonthAndYear>(
             valueListenable: _monthYearNotifier,
             builder: (context, selection, child) {
-              final canGoBack = selection.toDateTime().isAfter(widget.firstDate);
-              final canGoForward = selection.toDateTime().isBefore(widget.lastDate);
+              final canGoBack = selection.toDate().isAfter(widget.firstDate);
+              final canGoForward = selection.toDate().isBefore(widget.lastDate);
 
               return Row(
                 children: [
@@ -246,7 +246,7 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
                     return const SizedBox();
                   }
 
-                  final date = DateTime(
+                  final date = Date(
                     selection.year,
                     selection.month,
                     realIndex - firstWeekDay + 2,
@@ -255,7 +255,7 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
                   return LayoutBuilder(
                     builder: (context, constraints) {
                       return Center(
-                        child: ValueListenableBuilder<Iterable<DateTime>>(
+                        child: ValueListenableBuilder<Iterable<Date>>(
                           valueListenable: _datesNotifier,
                           builder: (context, selectedDates, child) {
                             final tooltip = widget.tooltipBuilder?.call(date);
