@@ -47,6 +47,7 @@ class _AppBooleanFilterState<M extends Object> extends _AppFilterState<M> {
         setState(() => _value = _nextValue);
         _changeDebouncer.run(() {
           widget.onChanged(_value);
+          AppTableView.maybeOf(context)?.controller.reload();
         });
       },
     );

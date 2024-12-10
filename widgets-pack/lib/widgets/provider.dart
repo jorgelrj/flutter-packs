@@ -3,24 +3,29 @@ import 'package:flutter/material.dart';
 
 class WPWidgetsConfig extends Equatable {
   final WPVideoPlayerConfig? videoPlayer;
+  final WPDropdownInputConfig? dropdownInput;
 
   const WPWidgetsConfig({
     this.videoPlayer,
+    this.dropdownInput,
   });
 
   @override
-  List<Object?> get props => [videoPlayer];
+  List<Object?> get props => [videoPlayer, dropdownInput];
 }
 
 class WPVideoPlayerConfig extends Equatable {
+  final bool showControls;
   final Map<String, String>? headers;
 
   const WPVideoPlayerConfig({
+    this.showControls = true,
     this.headers,
   });
 
   @override
   List<Object?> get props => [
+        showControls,
         headers,
       ];
 }
@@ -39,21 +44,38 @@ class WPStringsConfig extends Equatable {
 class WPTableStringsConfig extends Equatable {
   final String noItemsFound;
   final String Function(int) itemsSelected;
+  final ({String short, String long}) rowsPerPage;
+  final String of;
 
   const WPTableStringsConfig({
     required this.noItemsFound,
     required this.itemsSelected,
+    required this.rowsPerPage,
+    required this.of,
   });
 
   factory WPTableStringsConfig.defaultConfig() {
     return WPTableStringsConfig(
       noItemsFound: 'No items found',
       itemsSelected: (int count) => '$count selected',
+      rowsPerPage: (short: 'Rows', long: 'Rows per page'),
+      of: 'of',
     );
   }
 
   @override
   List<Object?> get props => [noItemsFound];
+}
+
+class WPDropdownInputConfig extends Equatable {
+  final Color? barrierColor;
+
+  const WPDropdownInputConfig({
+    required this.barrierColor,
+  });
+
+  @override
+  List<Object?> get props => [barrierColor];
 }
 
 class WidgetsPackProvider extends StatefulWidget {

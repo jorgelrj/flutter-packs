@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:extensions_pack/extensions_pack.dart';
 import 'package:flutter/material.dart';
 import 'package:widgets_pack/widgets/widgets.dart';
 
@@ -81,6 +80,16 @@ abstract class AppTableViewController<M extends Object> extends ChangeNotifier {
     return _selectedItems.isNotEmpty && currentPageItems.length == _selectedItems.length;
   }
 
+  void toggleItem(M item) {
+    final index = _items.indexOf(item);
+
+    if (index == -1) {
+      return;
+    }
+
+    handleItemTapAtIndex(index);
+  }
+
   void handleItemTapAtIndex(int index) {
     if (index < 0 || index >= _items.length) {
       return;
@@ -139,12 +148,15 @@ abstract class AppTableViewController<M extends Object> extends ChangeNotifier {
   }
 
   @mustCallSuper
-  Future<void> reload({bool keepOffset = false}) async {
+  Future<void> reload({bool keepOffset = false, bool keepSelection = false}) async {
     if (!keepOffset) {
-      _selectedItems = [];
       _currentPage = 0;
       _items = [];
       _maxItems = null;
+    }
+
+    if (!keepSelection) {
+      _selectedItems = [];
     }
   }
 
@@ -164,7 +176,7 @@ abstract class AppTableViewController<M extends Object> extends ChangeNotifier {
     _currentPage++;
 
     if (currentPageItems.isEmpty) {
-      return reload(keepOffset: true);
+      return reload(keepOffset: true, keepSelection: true);
     } else {
       notifyListeners();
     }
@@ -178,7 +190,7 @@ abstract class AppTableViewController<M extends Object> extends ChangeNotifier {
     _currentPage--;
 
     if (currentPageItems.isEmpty) {
-      return reload(keepOffset: true);
+      return reload(keepOffset: true, keepSelection: true);
     } else {
       notifyListeners();
     }
@@ -193,7 +205,7 @@ class AppTableViewListController<M extends Object> extends AppTableViewControlle
   });
 
   @override
-  Future<void> reload({bool keepOffset = false}) async {
+  Future<void> reload({bool keepOffset = false, bool keepSelection = false}) async {
     super.reload(keepOffset: keepOffset);
 
     loading = true;
@@ -213,27 +225,27 @@ class AppTableViewPaginatedController<M extends Object> extends AppTableViewCont
   });
 
   @override
-  Future<void> reload({bool keepOffset = false}) async {
+  Future<void> reload({bool keepOffset = false, bool keepSelection = false}) async {
     super.reload(keepOffset: keepOffset);
 
     loading = true;
 
-    final data = await fetcher(
+    final (list, count) = await fetcher(
       currentPage,
       pageSize,
     );
 
-    _maxItems = data.$2;
+    _maxItems = count;
     if (keepOffset && currentPageItems.isNotEmpty) {
-      final itemMap = {
-        for (final item in data.$1) _currentPage * _pageSize + data.$1.indexOf(item): item,
-      };
+      final startOffset = _currentPage * _pageSize;
 
-      _items = _items.mapIndexed((index, item) {
-        return itemMap[index] ?? item;
-      }).toList();
+      final updatedList = List.of(items)
+        ..removeRange(startOffset, startOffset + currentPageItems.length)
+        ..insertAll(startOffset, list);
+
+      _items = updatedList;
     } else {
-      _items = [...items, ...data.$1];
+      _items = [...items, ...list];
     }
 
     loading = false;

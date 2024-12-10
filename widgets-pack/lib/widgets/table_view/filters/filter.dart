@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:widgets_pack/helpers/helpers.dart';
-import 'package:widgets_pack/widgets/fields/text_field.dart';
+import 'package:widgets_pack/widgets/widgets.dart';
 
 part 'boolean.filter.dart';
 part 'date.filter.dart';

@@ -11,7 +11,7 @@ class VideoPlayer extends StatelessWidget {
   final String source;
   final bool autoPlay;
   final bool muted;
-  final bool showControls;
+  final bool? showControls;
   final WPVideoPlayerConfig? config;
   final double aspectRatio;
   final BorderRadius? borderRadius;
@@ -20,7 +20,7 @@ class VideoPlayer extends StatelessWidget {
     required this.source,
     this.autoPlay = false,
     this.muted = false,
-    this.showControls = true,
+    this.showControls,
     this.config,
     this.aspectRatio = 16 / 9,
     this.borderRadius,
@@ -32,8 +32,8 @@ class VideoPlayer extends StatelessWidget {
     required String source,
     bool autoPlay = false,
     bool muted = false,
-    bool showControls = true,
     WPVideoPlayerConfig? config,
+    bool? showControls,
     Color barrierColor = const Color(0xA604181F),
     double aspectRatio = 16 / 9,
   }) async {
@@ -69,7 +69,7 @@ class VideoPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final videoConfig = config ?? context.wpWidgetsConfig.videoPlayer;
+    final videoConfig = config ?? context.wpWidgetsConfig.videoPlayer ?? const WPVideoPlayerConfig();
 
     if (_isYouTube(source)) {
       if (kIsWeb) {
@@ -78,7 +78,7 @@ class VideoPlayer extends StatelessWidget {
           videoUrl: source,
           autoPlay: autoPlay,
           muted: muted,
-          showControls: showControls,
+          showControls: showControls ?? videoConfig.showControls,
           aspectRatio: aspectRatio,
         );
       } else {
@@ -87,7 +87,7 @@ class VideoPlayer extends StatelessWidget {
           videoUrl: source,
           autoPlay: autoPlay,
           muted: muted,
-          showControls: showControls,
+          showControls: showControls ?? videoConfig.showControls,
           aspectRatio: aspectRatio,
         );
       }
@@ -97,9 +97,9 @@ class VideoPlayer extends StatelessWidget {
         videoUrl: source,
         autoPlay: autoPlay,
         muted: muted,
-        showControls: showControls,
+        showControls: showControls ?? videoConfig.showControls,
         aspectRatio: aspectRatio,
-        headers: videoConfig?.headers,
+        headers: videoConfig.headers,
       );
     } else {
       return _AssetPlayer(
@@ -107,7 +107,7 @@ class VideoPlayer extends StatelessWidget {
         videoPath: source,
         autoPlay: autoPlay,
         muted: muted,
-        showControls: showControls,
+        showControls: showControls ?? videoConfig.showControls,
         aspectRatio: aspectRatio,
       );
     }

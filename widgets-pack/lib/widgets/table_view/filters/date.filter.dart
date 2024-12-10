@@ -112,6 +112,7 @@ class _AppDateFilterState<M extends Object> extends _AppFilterState<M> {
     if (_overlayController.isShowing) {
       _overlayController.hide();
     }
+    AppTableView.maybeOf(context)?.controller.reload();
   }
 
   @override
