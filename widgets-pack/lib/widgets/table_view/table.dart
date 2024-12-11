@@ -366,6 +366,7 @@ class _ActionsColumn<M extends Object> extends StatelessWidget {
                       (index) {
                         final item = controller.itemAtIndex(index);
                         final visible = item != null;
+                        final isLastRow = index == controller.pageSize - 1;
 
                         return ValueListenableBuilder<int?>(
                           valueListenable: hoveredRowNotifier,
@@ -373,12 +374,14 @@ class _ActionsColumn<M extends Object> extends StatelessWidget {
                             return Container(
                               decoration: BoxDecoration(
                                 color: hoveredRow == index + 1 ? context.colorScheme.surfaceContainer : null,
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: context.colorScheme.onSurfaceVariant,
-                                    width: 0.5,
-                                  ),
-                                ),
+                                border: isLastRow && !config.showPagination
+                                    ? null
+                                    : Border(
+                                        bottom: BorderSide(
+                                          color: context.colorScheme.onSurfaceVariant,
+                                          width: 0.5,
+                                        ),
+                                      ),
                               ),
                               height: _columnHeight,
                               child: child,
@@ -795,16 +798,19 @@ class _TableViewState<M extends Object> extends State<_TableView<M>> {
           },
           rowBuilder: (index) {
             final isHeader = index == 0;
+            final isLastRow = index == widget.pageSize - 1;
 
             return TableSpan(
               cursor: isHeader ? SystemMouseCursors.basic : SystemMouseCursors.click,
               backgroundDecoration: TableSpanDecoration(
-                border: SpanBorder(
-                  trailing: BorderSide(
-                    color: context.colorScheme.onSurfaceVariant,
-                    width: 0.5,
-                  ),
-                ),
+                border: (isLastRow && !widget.config.showPagination)
+                    ? null
+                    : SpanBorder(
+                        trailing: BorderSide(
+                          color: context.colorScheme.onSurfaceVariant,
+                          width: 0.5,
+                        ),
+                      ),
               ),
               extent: const FixedTableSpanExtent(_columnHeight),
               recognizerFactories: _buildRowRecognizers(index),
