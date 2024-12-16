@@ -123,7 +123,7 @@ class _YoutubePlayerState extends State<_YoutubePlayer> {
   void initState() {
     super.initState();
 
-    final videoId = YoutubePlayerController.convertUrlToId(widget.videoUrl);
+    final videoId = getYoutubeIdRegex(widget.videoUrl);
 
     controller = YoutubePlayerController.fromVideoId(
       videoId: videoId!,
@@ -135,6 +135,20 @@ class _YoutubePlayerState extends State<_YoutubePlayer> {
         mute: widget.muted,
       ),
     );
+  }
+
+  static String? getYoutubeIdRegex(String url) {
+    const pattern =
+        r'(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.)?youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([\w-]{11})\S*';
+
+    final regExp = RegExp(pattern, caseSensitive: false);
+
+    final match = regExp.firstMatch(url);
+    if (match != null && match.groupCount >= 1) {
+      return match.group(1);
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -382,7 +396,6 @@ class _NetworkPlayerState extends State<_NetworkPlayer> {
       autoPlay: widget.autoPlay,
       looping: true,
       aspectRatio: 16 / 9,
-      allowMuting: true,
     );
 
     setState(() {});
