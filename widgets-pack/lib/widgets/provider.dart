@@ -15,17 +15,14 @@ class WPWidgetsConfig extends Equatable {
 }
 
 class WPVideoPlayerConfig extends Equatable {
-  final bool showControls;
   final Map<String, String>? headers;
 
   const WPVideoPlayerConfig({
-    this.showControls = true,
     this.headers,
   });
 
   @override
   List<Object?> get props => [
-        showControls,
         headers,
       ];
 }

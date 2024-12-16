@@ -64,7 +64,7 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
         builder: (context, controller, child) {
           return AppButton.icon(
             onPressed: controller.open,
-            tooltip: action.label,
+            tooltip: action.tooltip ?? action.label,
             icon: action.icon,
           );
         },
@@ -81,7 +81,7 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
 
     return AppButton.icon(
       onPressed: action.onPressed,
-      tooltip: action.label,
+      tooltip: action.tooltip ?? action.label,
       icon: action.icon,
     );
   }

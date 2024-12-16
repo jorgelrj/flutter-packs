@@ -2,28 +2,22 @@ import 'package:chewie/chewie.dart';
 import 'package:extensions_pack/extensions_pack.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:video_player/video_player.dart';
 import 'package:widgets_pack/widgets_pack.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart' as yt_mobile;
-import 'package:youtube_player_iframe/youtube_player_iframe.dart' as yt_web;
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 class VideoPlayer extends StatelessWidget {
   final String source;
   final bool autoPlay;
   final bool muted;
-  final bool? showControls;
   final WPVideoPlayerConfig? config;
-  final double aspectRatio;
-  final BorderRadius? borderRadius;
 
   const VideoPlayer({
     required this.source,
     this.autoPlay = false,
     this.muted = false,
-    this.showControls,
     this.config,
-    this.aspectRatio = 16 / 9,
-    this.borderRadius,
     super.key,
   });
 
@@ -33,9 +27,7 @@ class VideoPlayer extends StatelessWidget {
     bool autoPlay = false,
     bool muted = false,
     WPVideoPlayerConfig? config,
-    bool? showControls,
     Color barrierColor = const Color(0xA604181F),
-    double aspectRatio = 16 / 9,
   }) async {
     return showDialog(
       context: context,
@@ -47,14 +39,12 @@ class VideoPlayer extends StatelessWidget {
               maxWidth: 800,
             ),
             child: AspectRatio(
-              aspectRatio: aspectRatio,
+              aspectRatio: 16 / 9,
               child: VideoPlayer(
                 source: source,
                 autoPlay: autoPlay,
                 muted: muted,
-                showControls: showControls,
                 config: config ?? context.wpWidgetsConfig.videoPlayer,
-                aspectRatio: aspectRatio,
               ),
             ),
           ),
@@ -63,161 +53,49 @@ class VideoPlayer extends StatelessWidget {
     );
   }
 
-  bool _isYouTube(String url) {
-    return url.contains('youtube.com') || url.contains('youtu.be');
-  }
+  bool _isYouTube(String url) => url.contains('youtu');
+
+  bool _isVimeo(String url) => url.contains('vimeo');
 
   @override
   Widget build(BuildContext context) {
     final videoConfig = config ?? context.wpWidgetsConfig.videoPlayer ?? const WPVideoPlayerConfig();
 
     if (_isYouTube(source)) {
-      if (kIsWeb) {
-        return _YoutubePlayer(
+      return _YoutubePlayer(
+        key: ValueKey(source),
+        videoUrl: source,
+        autoPlay: autoPlay,
+        muted: muted,
+      );
+    } else if (_isVimeo(source)) {
+      final authIndicators = ['oauth2_token_id=', 'signature=', '/rendition/', 'progressive_redirect', 'file.mp4'];
+
+      if (!authIndicators.any(source.contains)) {
+        return _VimeoPlayer(
           key: ValueKey(source),
           videoUrl: source,
           autoPlay: autoPlay,
           muted: muted,
-          showControls: showControls ?? videoConfig.showControls,
-          aspectRatio: aspectRatio,
-        );
-      } else {
-        return _YoutubePlayerMobile(
-          key: ValueKey(source),
-          videoUrl: source,
-          autoPlay: autoPlay,
-          muted: muted,
-          showControls: showControls ?? videoConfig.showControls,
-          aspectRatio: aspectRatio,
         );
       }
-    } else if (source.isUrl) {
+    }
+
+    if (source.isUrl) {
       return _NetworkPlayer(
         key: ValueKey(source),
         videoUrl: source,
         autoPlay: autoPlay,
         muted: muted,
-        showControls: showControls ?? videoConfig.showControls,
-        aspectRatio: aspectRatio,
         headers: videoConfig.headers,
       );
-    } else {
-      return _AssetPlayer(
-        key: ValueKey(source),
-        videoPath: source,
-        autoPlay: autoPlay,
-        muted: muted,
-        showControls: showControls ?? videoConfig.showControls,
-        aspectRatio: aspectRatio,
-      );
     }
-  }
-}
 
-class _YoutubePlayerMobile extends StatefulWidget {
-  final String videoUrl;
-  final bool autoPlay;
-  final bool muted;
-  final bool showControls;
-  final double aspectRatio;
-
-  const _YoutubePlayerMobile({
-    required this.videoUrl,
-    required this.autoPlay,
-    required this.muted,
-    required this.showControls,
-    required this.aspectRatio,
-    super.key,
-  });
-
-  @override
-  State<_YoutubePlayerMobile> createState() => _YoutubePlayerMobileState();
-}
-
-class _YoutubePlayerMobileState extends State<_YoutubePlayerMobile> {
-  yt_mobile.YoutubePlayerController? _controller;
-
-  bool _hasError = false;
-  bool _loading = true;
-
-  static String? getYoutubeIdRegex(String url) {
-    const pattern =
-        r'(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.)?youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([\w-]{11})\S*';
-
-    final regExp = RegExp(pattern, caseSensitive: false);
-
-    final match = regExp.firstMatch(url);
-    if (match != null && match.groupCount >= 1) {
-      return match.group(1);
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    debugPrint('Initializing YoutubePlayer with videoUrl: ${widget.videoUrl}');
-
-    final videoId = getYoutubeIdRegex(widget.videoUrl);
-
-    debugPrint('YoutubePlayer videoId: $videoId');
-
-    if (videoId == null) {
-      debugPrint('YoutubePlayer videoId is null');
-
-      _loading = false;
-      _hasError = true;
-    } else {
-      debugPrint('Initializing YoutubePlayerController with videoId: $videoId');
-
-      _controller = yt_mobile.YoutubePlayerController(
-        initialVideoId: videoId,
-        flags: yt_mobile.YoutubePlayerFlags(
-          autoPlay: widget.autoPlay,
-          mute: widget.muted,
-          hideControls: !widget.showControls,
-          controlsVisibleAtStart: widget.showControls,
-        ),
-      );
-      _loading = false;
-
-      debugPrint('YoutubePlayerController initialized');
-
-      _controller?.addListener(() {
-        if (_controller!.value.hasError) {
-          debugPrint('YoutubePlayer stream error: ${_controller!.value.errorCode}');
-
-          setState(() {
-            _loading = false;
-            _hasError = true;
-          });
-        }
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: _controller == null
-          ? _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _hasError
-                  ? const Center(child: Text('Error loading video'))
-                  : const SizedBox()
-          : yt_mobile.YoutubePlayer(
-              controller: _controller!,
-              aspectRatio: widget.aspectRatio,
-            ),
+    return _AssetPlayer(
+      key: ValueKey(source),
+      videoPath: source,
+      autoPlay: autoPlay,
+      muted: muted,
     );
   }
 }
@@ -226,15 +104,11 @@ class _YoutubePlayer extends StatefulWidget {
   final String videoUrl;
   final bool autoPlay;
   final bool muted;
-  final bool showControls;
-  final double aspectRatio;
 
   const _YoutubePlayer({
     required this.videoUrl,
     required this.autoPlay,
     required this.muted,
-    required this.showControls,
-    required this.aspectRatio,
     super.key,
   });
 
@@ -243,94 +117,203 @@ class _YoutubePlayer extends StatefulWidget {
 }
 
 class _YoutubePlayerState extends State<_YoutubePlayer> {
-  yt_web.YoutubePlayerController? _controller;
-
-  bool _hasError = false;
-  bool _loading = true;
-
-  static String? getYoutubeIdRegex(String url) {
-    const pattern =
-        r'(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.)?youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([\w-]{11})\S*';
-
-    final regExp = RegExp(pattern, caseSensitive: false);
-
-    final match = regExp.firstMatch(url);
-    if (match != null && match.groupCount >= 1) {
-      return match.group(1);
-    } else {
-      return null;
-    }
-  }
+  late final YoutubePlayerController controller;
 
   @override
   void initState() {
     super.initState();
 
-    debugPrint('Initializing YoutubePlayer with videoUrl: ${widget.videoUrl}');
+    final videoId = YoutubePlayerController.convertUrlToId(widget.videoUrl);
 
-    final videoId = getYoutubeIdRegex(widget.videoUrl);
-
-    debugPrint('YoutubePlayer videoId: $videoId');
-
-    if (videoId == null) {
-      debugPrint('YoutubePlayer videoId is null');
-
-      _loading = false;
-      _hasError = true;
-    } else {
-      debugPrint('Initializing YoutubePlayerController with videoId: $videoId');
-
-      _controller = yt_web.YoutubePlayerController.fromVideoId(
-        videoId: videoId,
-        autoPlay: widget.autoPlay,
-        params: yt_web.YoutubePlayerParams(
-          showControls: widget.showControls,
-          showVideoAnnotations: false,
-          strictRelatedVideos: true,
-          mute: widget.muted,
-        ),
-      );
-      _loading = false;
-
-      debugPrint('YoutubePlayerController initialized');
-
-      _controller?.stream.firstWhere((data) {
-        if (data.hasError) {
-          debugPrint('YoutubePlayer stream error: ${data.error}');
-
-          setState(() {
-            _loading = false;
-            _hasError = true;
-          });
-        }
-
-        return data.hasError;
-      });
-    }
+    controller = YoutubePlayerController.fromVideoId(
+      videoId: videoId!,
+      autoPlay: widget.autoPlay,
+      params: YoutubePlayerParams(
+        loop: true,
+        strictRelatedVideos: true,
+        showVideoAnnotations: false,
+        mute: widget.muted,
+      ),
+    );
   }
 
   @override
   void dispose() {
-    _controller?.close();
+    controller.close();
 
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: _controller == null
-          ? _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _hasError
-                  ? const Center(child: Text('Error loading video'))
-                  : const SizedBox()
-          : yt_web.YoutubePlayer(
-              controller: _controller!,
-              aspectRatio: widget.aspectRatio,
-              backgroundColor: Colors.black,
-            ),
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: YoutubePlayer(
+        controller: controller,
+      ),
     );
+  }
+}
+
+class _VimeoPlayer extends StatefulWidget {
+  final String videoUrl;
+  final bool autoPlay;
+  final bool muted;
+
+  const _VimeoPlayer({
+    required this.videoUrl,
+    required this.autoPlay,
+    required this.muted,
+    super.key,
+  });
+
+  @override
+  State<_VimeoPlayer> createState() => _VimeoPlayerState();
+}
+
+class _VimeoPlayerState extends State<_VimeoPlayer> {
+  late final (String, String?) videoData;
+
+  bool isVideoLoading = !kIsWeb;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final regex = RegExp(r'(?:vimeo\.com/|player\.vimeo\.com/video/)(\d+)(?:/([a-zA-Z0-9]+))?');
+    final match = regex.firstMatch(widget.videoUrl);
+
+    videoData = (match!.group(1)!, match.group(2));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Stack(
+        children: [
+          InAppWebView(
+            initialSettings: InAppWebViewSettings(
+              mediaPlaybackRequiresUserGesture: false,
+              allowsInlineMediaPlayback: true,
+            ),
+            initialData: InAppWebViewInitialData(
+              data: _buildHtmlContent(),
+              baseUrl: WebUri('https://player.vimeo.com'),
+            ),
+            onConsoleMessage: (controller, consoleMessage) {
+              final message = consoleMessage.message;
+              debugPrint('onConsoleMessage :: $message');
+              if (message.startsWith('vimeo:')) {
+                _manageVimeoPlayerEvent(message.substring(6));
+              }
+            },
+            onLoadStart: (controller, url) {
+              setState(() {
+                isVideoLoading = true;
+              });
+            },
+            onLoadStop: (controller, url) {
+              setState(() {
+                isVideoLoading = false;
+              });
+            },
+          ),
+          if (isVideoLoading)
+            const Center(
+              child: CircularProgressIndicator(
+                color: Colors.grey,
+                backgroundColor: Colors.white,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds the HTML content for the vimeo player
+  String _buildHtmlContent() {
+    return '''
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+          }
+          .video-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+          }
+          iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+          }
+        </style>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <script src="https://player.vimeo.com/api/player.js"></script>
+      </head>
+      <body>
+        <div class="video-container">
+          <iframe 
+            id="player"
+            src="${_buildIframeUrl()}"
+            frameborder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen 
+            webkitallowfullscreen 
+            mozallowfullscreen>
+          </iframe>
+        </div>
+        <script>
+          const player = new Vimeo.Player('player');
+          player.ready().then(() => console.log('vimeo:onReady'));
+          player.on('play', () => console.log('vimeo:onPlay'));
+          player.on('pause', () => console.log('vimeo:onPause'));
+          player.on('ended', () => console.log('vimeo:onFinish'));
+          player.on('seeked', () => console.log('vimeo:onSeek'));
+        </script>
+      </body>
+    </html>
+    ''';
+  }
+
+  /// Builds the iframe URL
+  String _buildIframeUrl() {
+    final (id, hash) = videoData;
+
+    return 'https://player.vimeo.com/video/$id?'
+        '${hash != null ? 'h=$hash&' : ''}'
+        'autoplay=${widget.autoPlay ? 1 : 0}'
+        '&loop=1'
+        '&muted=${widget.muted ? 1 : 0}'
+        '&title=0'
+        '&byline=0'
+        '&controls=1'
+        '&playsinline=1';
+  }
+
+  /// Manage vimeo player events received from the WebView
+  void _manageVimeoPlayerEvent(String event) {
+    debugPrint('Vimeo event: $event');
+    switch (event) {
+      case 'onReady':
+        debugPrint('onReady');
+      case 'onPlay':
+        debugPrint('onPlay');
+      case 'onPause':
+        debugPrint('onPause');
+      case 'onFinish':
+        debugPrint('onFinish');
+      case 'onSeek':
+        debugPrint('onSeek');
+    }
   }
 }
 
@@ -338,16 +321,12 @@ class _NetworkPlayer extends StatefulWidget {
   final String videoUrl;
   final bool autoPlay;
   final bool muted;
-  final bool showControls;
-  final double aspectRatio;
   final Map<String, String>? headers;
 
   const _NetworkPlayer({
     required this.videoUrl,
     required this.autoPlay,
     required this.muted,
-    required this.showControls,
-    required this.aspectRatio,
     this.headers,
     super.key,
   });
@@ -399,12 +378,11 @@ class _NetworkPlayerState extends State<_NetworkPlayer> {
 
     _chewieController = ChewieController(
       videoPlayerController: _videoPlayerController,
-      allowFullScreen: widget.showControls,
-      showControls: widget.showControls,
-      showOptions: false,
+      allowFullScreen: false,
       autoPlay: widget.autoPlay,
       looping: true,
-      aspectRatio: widget.aspectRatio,
+      aspectRatio: 16 / 9,
+      allowMuting: true,
     );
 
     setState(() {});
@@ -432,56 +410,15 @@ class _NetworkPlayerState extends State<_NetworkPlayer> {
           }
         },
         child: _controllerInitialized
-            ? Stack(
-                children: [
-                  Positioned.fill(
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: SizedBox(
-                        width: _chewieController!.videoPlayerController.value.size.width,
-                        height: _chewieController!.videoPlayerController.value.size.height,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: widget.showControls
-                              ? null
-                              : () {
-                                  _chewieController!.togglePause();
-                                  setState(() => paused = !paused);
-                                },
-                          child: Chewie(
-                            controller: _chewieController!,
-                          ),
-                        ),
-                      ),
-                    ),
+            ? AspectRatio(
+                aspectRatio: _chewieController!.videoPlayerController.value.aspectRatio,
+                child: SizedBox(
+                  width: _chewieController!.videoPlayerController.value.size.width,
+                  height: _chewieController!.videoPlayerController.value.size.height,
+                  child: Chewie(
+                    controller: _chewieController!,
                   ),
-                  if (!widget.showControls)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: IconButton(
-                        icon: Icon(
-                          muted ? Icons.volume_off : Icons.volume_up,
-                          color: Colors.grey,
-                        ),
-                        onPressed: () => setAudio(mute: !muted),
-                      ),
-                    ),
-                  if (!widget.showControls && paused)
-                    Center(
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.play_circle_outline,
-                          color: Colors.grey,
-                          size: 48,
-                        ),
-                        onPressed: () {
-                          _chewieController!.play();
-                          setState(() => paused = false);
-                        },
-                      ),
-                    ),
-                ],
+                ),
               )
             : const Center(child: AppCircularLoader()),
       ),
@@ -493,15 +430,11 @@ class _AssetPlayer extends StatefulWidget {
   final String videoPath;
   final bool autoPlay;
   final bool muted;
-  final bool showControls;
-  final double aspectRatio;
 
   const _AssetPlayer({
     required this.videoPath,
     required this.autoPlay,
     required this.muted,
-    required this.showControls,
-    required this.aspectRatio,
     super.key,
   });
 
@@ -548,12 +481,11 @@ class _AssetPlayerState extends State<_AssetPlayer> {
 
     _chewieController = ChewieController(
       videoPlayerController: _videoPlayerController,
-      allowFullScreen: widget.showControls,
-      showControls: widget.showControls,
+      allowFullScreen: false,
       showOptions: false,
       autoPlay: widget.autoPlay,
       looping: true,
-      aspectRatio: widget.aspectRatio,
+      aspectRatio: 16 / 9,
     );
 
     setState(() {});
@@ -581,37 +513,15 @@ class _AssetPlayerState extends State<_AssetPlayer> {
           }
         },
         child: _controllerInitialized
-            ? Stack(
-                children: [
-                  Positioned.fill(
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: SizedBox(
-                        width: _chewieController!.videoPlayerController.value.size.width,
-                        height: _chewieController!.videoPlayerController.value.size.height,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: widget.showControls ? null : _chewieController!.togglePause,
-                          child: Chewie(
-                            controller: _chewieController!,
-                          ),
-                        ),
-                      ),
-                    ),
+            ? FittedBox(
+                fit: BoxFit.cover,
+                child: SizedBox(
+                  width: _chewieController!.videoPlayerController.value.size.width,
+                  height: _chewieController!.videoPlayerController.value.size.height,
+                  child: Chewie(
+                    controller: _chewieController!,
                   ),
-                  if (!widget.showControls)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: IconButton(
-                        icon: Icon(
-                          muted ? Icons.volume_off : Icons.volume_up,
-                          color: Colors.grey,
-                        ),
-                        onPressed: () => setAudio(mute: !muted),
-                      ),
-                    ),
-                ],
+                ),
               )
             : const SizedBox(),
       ),

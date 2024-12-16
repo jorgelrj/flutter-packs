@@ -96,8 +96,8 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
     final isSelected = selectedDisplayRange == null && _datesNotifier.value.any((d) => d == date);
     final isToday = date.isToday;
     final isDisabled = date != widget.firstDate && date.isBefore(widget.firstDate);
-    final isRangeStart = selectedDisplayRange?.start == date ?? false;
-    final isRangeEnd = selectedDisplayRange?.end == date ?? false;
+    final isRangeStart = selectedDisplayRange?.start == date;
+    final isRangeEnd = selectedDisplayRange?.end == date;
 
     final isBetweenRange = selectedDisplayRange != null &&
         date.isAfter(selectedDisplayRange.start) &&
