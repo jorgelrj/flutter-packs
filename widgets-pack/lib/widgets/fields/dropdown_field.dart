@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:extensions_pack/extensions_pack.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:widgets_pack/widgets_pack.dart';
 
 class AppDropDownFormField<T extends Object> extends StatefulWidget {
@@ -42,6 +41,8 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final bool showClearButton;
   final bool readOnly;
   final Color? barrierColor;
+  final bool openAsBottomSheet;
+  final bool adaptive;
 
   const AppDropDownFormField({
     required this.fetcher,
@@ -80,19 +81,56 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
     this.showClearButton = true,
     this.readOnly = false,
     this.barrierColor,
+    this.openAsBottomSheet = false,
     super.key,
-  });
+  }) : adaptive = false;
+
+  const AppDropDownFormField.adaptive({
+    required this.fetcher,
+    required this.handler,
+    this.labelText,
+    this.labelStyle,
+    this.hintText,
+    this.validator,
+    this.border,
+    this.focusedBorder,
+    this.overlayOpenBorder,
+    this.overlayBorder,
+    this.inputContentPadding,
+    this.tilesContentPadding,
+    this.showTrailing = true,
+    this.errorType = AppTextFormFieldErrorType.string,
+    this.tileBuilder,
+    this.enabled = true,
+    this.updateTextOnChanged = true,
+    this.filled,
+    this.fillColor,
+    this.keyboardType,
+    this.suffixIcon,
+    this.prefixIcon,
+    this.requestFocusOnInitState = false,
+    this.minLengthForSearch,
+    this.controller,
+    this.focusNode,
+    this.overlayColor,
+    this.overlayBorderRadius,
+    this.debounceDuration = const Duration(milliseconds: 350),
+    this.emptyBuilder,
+    this.loadingBuilder,
+    this.style,
+    this.loading = false,
+    this.showClearButton = true,
+    this.readOnly = false,
+    this.barrierColor,
+    this.openAsBottomSheet = false,
+    super.key,
+  }) : adaptive = true;
 
   @override
   State<AppDropDownFormField<T>> createState() => _AppDropDownFormFieldState<T>();
 }
 
 class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormField<T>> {
-  static const Map<ShortcutActivator, Intent> _shortcuts = <ShortcutActivator, Intent>{
-    SingleActivator(LogicalKeyboardKey.arrowUp): AutocompletePreviousOptionIntent(),
-    SingleActivator(LogicalKeyboardKey.arrowDown): AutocompleteNextOptionIntent(),
-  };
-
   final _widgetKey = GlobalKey();
 
   RenderBox? get _renderBox {
@@ -117,15 +155,6 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   final _showingOverlayNotifier = ValueNotifier<bool>(false);
   final _highlightedIndexNotifier = ValueNotifier<int>(0);
 
-  late final Map<Type, CallbackAction<Intent>> _actionMap = <Type, CallbackAction<Intent>>{
-    AutocompletePreviousOptionIntent: CallbackAction<AutocompletePreviousOptionIntent>(
-      onInvoke: _highlightPreviousOption,
-    ),
-    AutocompleteNextOptionIntent: CallbackAction<AutocompleteNextOptionIntent>(
-      onInvoke: _highlightNextOption,
-    ),
-  };
-
   late final _selectedItemNotifier = ValueNotifier<List<T>>(
     switch (widget.handler) {
       final AppSingleItemHandler<T> handler => [handler.initialValue].whereNotNull().toList(),
@@ -137,13 +166,24 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     _selectedItemNotifier.value.isNotEmpty,
   );
 
+  bool get _openAsBottomSheet {
+    final asBottomSheet = widget.openAsBottomSheet || (widget.adaptive && context.screenSize.width < 600);
+
+    return asBottomSheet;
+  }
+
   bool _loadedAll = false;
   late bool _loading = widget.loading;
+
   String? _lastSearch;
 
   OverlayEntry? _overlayEntry;
 
-  Future<void> _search(String search) async {
+  Future<void> _search(String search, {bool fromInputChange = false}) async {
+    if (!fromInputChange) {
+      return;
+    }
+
     if (widget.minLengthForSearch != null) {
       if (search.length < widget.minLengthForSearch!) {
         return;
@@ -233,10 +273,12 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   void _textFocusNodeListener() {
     if (mounted) {
       if (_textFocusNode.hasFocus) {
-        if (_overlayEntry != null) {
+        if (_openAsBottomSheet) {
+          _showBottomSheet();
+        } else if (!_openAsBottomSheet && _overlayEntry != null) {
           _showOverlay();
         }
-      } else {
+      } else if (!_openAsBottomSheet) {
         _hideOverlay();
       }
     }
@@ -256,6 +298,24 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
       rootOverlay: true,
     )?.insert(_overlayEntry!);
     _showingOverlayNotifier.value = true;
+  }
+
+  Future<void> _showBottomSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        _search('', fromInputChange: true);
+
+        return _BottomSheetContent(
+          onTextChanged: (value) => _search(value, fromInputChange: true),
+          itemsList: _itemsListBuilder(),
+          labelText: widget.labelText,
+          hintText: widget.hintText,
+        );
+      },
+    );
+
+    _textFocusNode.unfocus();
   }
 
   FutureOr<void> _onItemsChange() async {
@@ -338,6 +398,10 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
       _selectedItemNotifier.value = [];
     } else {
       _selectedItemNotifier.value = [item];
+
+      if (_openAsBottomSheet) {
+        Navigator.of(context).pop();
+      }
     }
   }
 
@@ -374,19 +438,114 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     }
   }
 
-  void _updateHighlight(int newIndex) {
-    _highlightedIndexNotifier.value =
-        _filteredItemsNotifier.value.isEmpty ? 0 : newIndex % _filteredItemsNotifier.value.length;
+  Widget _overlayContent({
+    required double maxHeight,
+    required double availableSpace,
+    required bool openAbove,
+  }) {
+    if (!mounted) {
+      return const SizedBox.shrink();
+    }
+
+    final colorScheme = context.colorScheme;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_loading) widget.loadingBuilder?.call(context) ?? const LinearProgressIndicator(),
+        Flexible(
+          child: TextFieldTapRegion(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              constraints: BoxConstraints(
+                maxHeight: openAbove
+                    ? maxHeight
+                    : availableSpace > maxHeight
+                        ? maxHeight
+                        : availableSpace - 16,
+              ),
+              decoration: BoxDecoration(
+                color: widget.overlayColor ?? colorScheme.surfaceContainer,
+                borderRadius: widget.overlayBorderRadius ??
+                    const BorderRadius.vertical(
+                      bottom: Radius.circular(4),
+                    ),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 10.0,
+                    color: Colors.black.withOpacity(0.25),
+                    offset: const Offset(5.0, 10.0),
+                  ),
+                ],
+              ),
+              child: _itemsListBuilder(),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
-  void _highlightPreviousOption(AutocompletePreviousOptionIntent intent) {
-    _showOverlay();
-    _updateHighlight(_highlightedIndexNotifier.value - 1);
-  }
+  Widget _itemsListBuilder() {
+    return ValueListenableBuilder<List<T>>(
+      valueListenable: _filteredItemsNotifier,
+      builder: (context, items, child) {
+        if (items.isEmpty && !_loading) {
+          return widget.emptyBuilder?.call(context) ?? const SizedBox.shrink();
+        }
 
-  void _highlightNextOption(AutocompleteNextOptionIntent intent) {
-    _showOverlay();
-    _updateHighlight(_highlightedIndexNotifier.value + 1);
+        return Material(
+          type: MaterialType.transparency,
+          child: ListView.separated(
+            itemCount: items.length,
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            physics: const ClampingScrollPhysics(),
+            separatorBuilder: (context, index) => const Divider(height: 0),
+            itemBuilder: (context, index) {
+              final item = items[index];
+
+              return ListenableBuilder(
+                listenable: _selectedItemNotifier,
+                builder: (context, child) {
+                  final selected = _selectedItemNotifier.value.any((selected) {
+                    return widget.handler.compare(selected, item);
+                  });
+
+                  void onTapItem() => _handleItem(item);
+
+                  final textWg = Text(widget.handler.asString(item));
+                  final padding = widget.tilesContentPadding;
+
+                  if (widget.tileBuilder != null) {
+                    return widget.tileBuilder!(item, selected, onTapItem);
+                  }
+
+                  return switch (widget.handler) {
+                    (AppSingleItemHandler<T>()) => ListTile(
+                        key: ObjectKey(item),
+                        title: textWg,
+                        onTap: onTapItem,
+                        contentPadding: padding,
+                        selected: selected,
+                      ),
+                    final AppMultipleItemsHandler<T> handler => CheckboxListTile(
+                        key: ObjectKey(item),
+                        title: textWg,
+                        value: selected,
+                        onChanged: (_) => onTapItem(),
+                        controlAffinity: handler.controlAffinity,
+                        contentPadding: padding,
+                      ),
+                  };
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -467,112 +626,6 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     super.dispose();
   }
 
-  Widget _overlayContent({
-    required double maxHeight,
-    required double availableSpace,
-    required bool openAbove,
-  }) {
-    if (!mounted) {
-      return const SizedBox.shrink();
-    }
-
-    final colorScheme = context.colorScheme;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (_loading) widget.loadingBuilder?.call(context) ?? const LinearProgressIndicator(),
-        Flexible(
-          child: TextFieldTapRegion(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              constraints: BoxConstraints(
-                maxHeight: openAbove
-                    ? maxHeight
-                    : availableSpace > maxHeight
-                        ? maxHeight
-                        : availableSpace - 16,
-              ),
-              decoration: BoxDecoration(
-                color: widget.overlayColor ?? colorScheme.surfaceContainer,
-                borderRadius: widget.overlayBorderRadius ??
-                    const BorderRadius.vertical(
-                      bottom: Radius.circular(4),
-                    ),
-                boxShadow: [
-                  BoxShadow(
-                    blurRadius: 10.0,
-                    color: Colors.black.withOpacity(0.25),
-                    offset: const Offset(5.0, 10.0),
-                  ),
-                ],
-              ),
-              child: ValueListenableBuilder<List<T>>(
-                valueListenable: _filteredItemsNotifier,
-                builder: (context, items, child) {
-                  if (items.isEmpty && !_loading) {
-                    return widget.emptyBuilder?.call(context) ?? const SizedBox.shrink();
-                  }
-
-                  return Material(
-                    type: MaterialType.transparency,
-                    child: ListView.separated(
-                      itemCount: items.length,
-                      shrinkWrap: true,
-                      padding: EdgeInsets.zero,
-                      physics: const ClampingScrollPhysics(),
-                      separatorBuilder: (context, index) => const Divider(height: 0),
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-
-                        return ListenableBuilder(
-                          listenable: _selectedItemNotifier,
-                          builder: (context, child) {
-                            final selected = _selectedItemNotifier.value.any((selected) {
-                              return widget.handler.compare(selected, item);
-                            });
-
-                            void onTapItem() => _handleItem(item);
-
-                            final textWg = Text(widget.handler.asString(item));
-                            final padding = widget.tilesContentPadding;
-
-                            if (widget.tileBuilder != null) {
-                              return widget.tileBuilder!(item, selected, onTapItem);
-                            }
-
-                            return switch (widget.handler) {
-                              (AppSingleItemHandler<T>()) => ListTile(
-                                  key: ObjectKey(item),
-                                  title: textWg,
-                                  onTap: onTapItem,
-                                  contentPadding: padding,
-                                  selected: selected,
-                                ),
-                              final AppMultipleItemsHandler<T> handler => CheckboxListTile(
-                                  key: ObjectKey(item),
-                                  title: textWg,
-                                  value: selected,
-                                  onChanged: (_) => onTapItem(),
-                                  controlAffinity: handler.controlAffinity,
-                                  contentPadding: padding,
-                                ),
-                            };
-                          },
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return CompositedTransformTarget(
@@ -586,7 +639,12 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
               return AppTextFormField(
                 requestFocusOnInitState: widget.requestFocusOnInitState,
                 enabled: widget.enabled,
-                controller: _textController,
+                onFocusChanged: (focused) {
+                  if (focused) {
+                    _search(_textController.text, fromInputChange: true);
+                  }
+                },
+                onChanged: (value) => _search(value, fromInputChange: true),
                 focusNode: _textFocusNode,
                 key: _widgetKey,
                 labelText: widget.labelText,
@@ -625,5 +683,36 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
         },
       ),
     );
+  }
+}
+
+class _BottomSheetContent extends StatelessWidget {
+  final ValueChanged<String> onTextChanged;
+  final String? labelText;
+  final String? hintText;
+  final Widget itemsList;
+
+  const _BottomSheetContent({
+    required this.onTextChanged,
+    required this.itemsList,
+    required this.labelText,
+    required this.hintText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AppTextFormField(
+          labelText: labelText,
+          hintText: hintText,
+          onChanged: onTextChanged,
+        ),
+        Flexible(
+          child: itemsList,
+        ),
+      ],
+    ).padded();
   }
 }
