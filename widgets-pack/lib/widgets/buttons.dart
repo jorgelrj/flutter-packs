@@ -15,6 +15,7 @@ class AppButton extends StatefulWidget {
   final FutureOrCallback? onPressed;
   final FutureOrCallback? onPressedDisabled;
   final bool showAnimation;
+  final BorderSide? side;
 
   const AppButton._({
     required this.type,
@@ -28,6 +29,7 @@ class AppButton extends StatefulWidget {
     this.onPressed,
     this.onPressedDisabled,
     this.showAnimation = true,
+    this.side,
     super.key,
   });
 
@@ -42,6 +44,7 @@ class AppButton extends StatefulWidget {
     this.onPressed,
     this.onPressedDisabled,
     this.showAnimation = true,
+    this.side,
     super.key,
   }) : type = AppButtonType.filled;
 
@@ -56,6 +59,7 @@ class AppButton extends StatefulWidget {
     this.onPressed,
     this.onPressedDisabled,
     this.showAnimation = true,
+    this.side,
     super.key,
   }) : type = AppButtonType.outlined;
 
@@ -70,6 +74,7 @@ class AppButton extends StatefulWidget {
     this.onPressed,
     this.onPressedDisabled,
     this.showAnimation = true,
+    this.side,
     super.key,
   }) : type = AppButtonType.text;
 
@@ -84,6 +89,7 @@ class AppButton extends StatefulWidget {
     this.onPressed,
     this.onPressedDisabled,
     this.showAnimation = true,
+    this.side,
     super.key,
   }) : type = AppButtonType.elevated;
 
@@ -98,6 +104,7 @@ class AppButton extends StatefulWidget {
     this.onPressed,
     this.onPressedDisabled,
     this.showAnimation = true,
+    this.side,
     super.key,
   }) : type = AppButtonType.tonal;
 
@@ -113,6 +120,7 @@ class AppButton extends StatefulWidget {
     String? tooltip,
     double size = 40,
     bool showAnimation = true,
+    BorderSide? side,
     Key? key,
   }) {
     return _AppIconButton(
@@ -127,6 +135,7 @@ class AppButton extends StatefulWidget {
       tooltip: tooltip,
       size: size,
       showAnimation: showAnimation,
+      side: side,
       child: icon,
     );
   }
@@ -262,6 +271,7 @@ class _AppButtonState extends State<AppButton> {
                     padding: widget.padding,
                     backgroundColor: widget.fillColor,
                     minimumSize: widget.minimumSize,
+                    side: widget.side,
                   ).merge(themeData.filledButtonTheme.style),
                   onHover: widget.onHover,
                   onPressed: _onPressed,
@@ -272,6 +282,7 @@ class _AppButtonState extends State<AppButton> {
                     padding: widget.padding,
                     backgroundColor: widget.fillColor,
                     minimumSize: widget.minimumSize,
+                    side: widget.side,
                   ).merge(themeData.filledButtonTheme.style),
                   onHover: widget.onHover,
                   onPressed: _onPressed,
@@ -281,6 +292,7 @@ class _AppButtonState extends State<AppButton> {
                   style: OutlinedButton.styleFrom(
                     padding: widget.padding,
                     minimumSize: widget.minimumSize,
+                    side: widget.side,
                   ).merge(themeData.outlinedButtonTheme.style),
                   onHover: widget.onHover,
                   onPressed: _onPressed,
@@ -291,6 +303,7 @@ class _AppButtonState extends State<AppButton> {
                     padding: widget.padding,
                     minimumSize: widget.minimumSize,
                     backgroundColor: widget.fillColor,
+                    side: widget.side,
                   ).merge(themeData.textButtonTheme.style),
                   onHover: widget.onHover,
                   onPressed: _onPressed,
@@ -301,6 +314,7 @@ class _AppButtonState extends State<AppButton> {
                     padding: widget.padding,
                     backgroundColor: widget.fillColor,
                     minimumSize: widget.minimumSize,
+                    side: widget.side,
                   ).merge(themeData.elevatedButtonTheme.style),
                   onHover: widget.onHover,
                   onPressed: _onPressed,
@@ -329,6 +343,7 @@ class _AppIconButton extends AppButton {
     super.onHover,
     super.showAnimation,
     super.hoverColor,
+    super.side,
     super.key,
     this.tooltip,
     this.size = 40,
@@ -367,6 +382,7 @@ class _AppIconsButtonState extends _AppButtonState {
             padding: EdgeInsets.zero,
             backgroundColor: widget.fillColor ?? Colors.transparent,
             hoverColor: widget.hoverColor,
+            side: widget.side,
             shape: const CircleBorder(),
           ),
           onPressed: _onPressed,
