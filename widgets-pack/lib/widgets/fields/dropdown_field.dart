@@ -43,6 +43,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final Color? barrierColor;
   final bool openAsBottomSheet;
   final bool adaptive;
+  final ValueChanged<bool>? onFocusChanged;
 
   const AppDropDownFormField({
     required this.fetcher,
@@ -82,6 +83,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
     this.readOnly = false,
     this.barrierColor,
     this.openAsBottomSheet = false,
+    this.onFocusChanged,
     super.key,
   }) : adaptive = false;
 
@@ -123,6 +125,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
     this.readOnly = false,
     this.barrierColor,
     this.openAsBottomSheet = false,
+    this.onFocusChanged,
     super.key,
   }) : adaptive = true;
 
@@ -644,6 +647,8 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
                   if (focused) {
                     _search(_textController.text, fromInputChange: true);
                   }
+
+                  widget.onFocusChanged?.call(focused);
                 },
                 onChanged: (value) => _search(value, fromInputChange: true),
                 focusNode: _textFocusNode,
