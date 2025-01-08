@@ -157,7 +157,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
 
   late final _selectedItemNotifier = ValueNotifier<List<T>>(
     switch (widget.handler) {
-      final AppSingleItemHandler<T> handler => [handler.initialValue].whereNotNull().toList(),
+      final AppSingleItemHandler<T> handler => [handler.initialValue].nonNulls.toList(),
       final AppMultipleItemsHandler<T> handler => handler.initialValue,
     },
   );
@@ -167,7 +167,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   );
 
   bool get _openAsBottomSheet {
-    final asBottomSheet = widget.openAsBottomSheet || (widget.adaptive && context.screenSize.width < 600);
+    final asBottomSheet = widget.openAsBottomSheet || (widget.adaptive && View.of(context).physicalSize.width < 600);
 
     return asBottomSheet;
   }

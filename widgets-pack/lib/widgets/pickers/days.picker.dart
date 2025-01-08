@@ -125,7 +125,7 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
 
     _datesNotifier = switch (widget.handler) {
       (final AppSingleItemHandler<Date> handler) =>
-        ValueNotifier([widget.initialDate ?? handler.initialValue].whereNotNull()),
+        ValueNotifier([widget.initialDate ?? handler.initialValue].nonNulls),
       (final AppMultipleItemsHandler<Date> handler) => ValueNotifier(handler.initialValue),
     };
 
@@ -150,7 +150,7 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
 
     if (widget.handler != oldWidget.handler) {
       _datesNotifier.value = switch (widget.handler) {
-        (final AppSingleItemHandler<Date> handler) => [handler.initialValue].whereNotNull(),
+        (final AppSingleItemHandler<Date> handler) => [handler.initialValue].nonNulls,
         (final AppMultipleItemsHandler<Date> handler) => handler.initialValue,
       };
     }
