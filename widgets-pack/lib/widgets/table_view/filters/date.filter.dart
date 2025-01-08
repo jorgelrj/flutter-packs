@@ -188,7 +188,7 @@ class _AppDateFilterState<M extends Object> extends _AppFilterState<M> {
                                 CalendarDatePicker(
                                   initialDate: _startDateNotifier.value ?? DateTime.now(),
                                   firstDate: DateTime(2020),
-                                  lastDate: DateTime(2025),
+                                  lastDate: DateTime.now() + const Duration(days: 365 * 5),
                                   onDateChanged: (date) {
                                     _startDateNotifier.value = date;
                                     _endDateNotifier.value = null;
@@ -202,7 +202,7 @@ class _AppDateFilterState<M extends Object> extends _AppFilterState<M> {
                                         key: ValueKey((startDate, endDate)),
                                         initialDate: _endDateNotifier.value,
                                         firstDate: startDate,
-                                        lastDate: DateTime(2025),
+                                        lastDate: DateTime.now() + const Duration(days: 365 * 5),
                                         onDateChanged: (date) {
                                           if (date == _endDateNotifier.value) {
                                             _endDateNotifier.value = null;

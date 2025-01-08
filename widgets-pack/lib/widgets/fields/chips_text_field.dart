@@ -561,8 +561,8 @@ class _DropdownContentState<T> extends _AppChipsTextFieldState<T> {
                   return Material(
                     type: MaterialType.transparency,
                     child: ListView.separated(
+                      padding: EdgeInsets.zero,
                       itemCount: items.length,
-                      shrinkWrap: true,
                       separatorBuilder: (context, index) => const Divider(height: 0),
                       itemBuilder: (context, index) {
                         final item = items[index];

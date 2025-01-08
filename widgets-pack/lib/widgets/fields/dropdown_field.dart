@@ -588,7 +588,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
             }
 
             if (currentItem == null) {
-              _selectedItemNotifier.value = [handlerItem!];
+              _selectedItemNotifier.value = handlerItem != null ? [handlerItem] : [];
             }
 
           case final AppMultipleItemsHandler<T> handler:
@@ -639,6 +639,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
               return AppTextFormField(
                 requestFocusOnInitState: widget.requestFocusOnInitState,
                 enabled: widget.enabled,
+                controller: _textController,
                 onFocusChanged: (focused) {
                   if (focused) {
                     _search(_textController.text, fromInputChange: true);

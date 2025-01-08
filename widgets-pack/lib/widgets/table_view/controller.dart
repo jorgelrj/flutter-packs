@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:widgets_pack/widgets/widgets.dart';
+import 'package:uuid/uuid.dart';
 
 abstract class AppTableViewController<M extends Object> extends ChangeNotifier {
   AppTableViewController() {
@@ -52,6 +53,8 @@ abstract class AppTableViewController<M extends Object> extends ChangeNotifier {
     _items = items;
     notifyListeners();
   }
+
+  String? _currentOperationId;
 
   List<M> get currentPageItems {
     final start = _currentPage * _pageSize;
@@ -206,11 +209,19 @@ class AppTableViewListController<M extends Object> extends AppTableViewControlle
 
   @override
   Future<void> reload({bool keepOffset = false, bool keepSelection = false}) async {
+    final opId = const Uuid().v4();
+    _currentOperationId = opId;
+
     super.reload(keepOffset: keepOffset);
 
     loading = true;
 
     _items = await fetcher();
+
+    if (_currentOperationId != opId) {
+      return;
+    }
+
     _maxItems = _items.length;
 
     loading = false;
@@ -226,6 +237,10 @@ class AppTableViewPaginatedController<M extends Object> extends AppTableViewCont
 
   @override
   Future<void> reload({bool keepOffset = false, bool keepSelection = false}) async {
+    final opId = const Uuid().v4();
+
+    _currentOperationId = opId;
+
     super.reload(keepOffset: keepOffset);
 
     loading = true;
@@ -234,6 +249,10 @@ class AppTableViewPaginatedController<M extends Object> extends AppTableViewCont
       currentPage,
       pageSize,
     );
+
+    if (_currentOperationId != opId) {
+      return;
+    }
 
     _maxItems = count;
     if (keepOffset && currentPageItems.isNotEmpty) {

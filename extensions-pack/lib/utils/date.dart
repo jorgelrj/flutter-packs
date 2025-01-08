@@ -52,6 +52,20 @@ class Date implements Comparable<Date> {
   /// Throws a [FormatException] if the input is not accepted.
   factory Date.parse(String formattedDate) => Date.from(DateTime.parse(formattedDate));
 
+  factory Date.lastDateAs(int weekday) {
+    Date start = Date.today();
+
+    if (start.weekday == weekday) {
+      return start.addDays(-7);
+    }
+
+    while (start.weekday != weekday) {
+      start = start.addDays(-1);
+    }
+
+    return start;
+  }
+
   /// Tries to parse a formatted date.
   ///
   /// Accepts the same formats as [DateTime.parse],
@@ -113,6 +127,8 @@ class Date implements Comparable<Date> {
   int get julianDay => _daysSinceEpoch - _julianDayOfEpoch;
 
   int get weekday => _time.weekday;
+
+  int get millisecondsSinceEpoch => _time.millisecondsSinceEpoch;
 
   /// Whether this date is strictly before [other].
   bool operator <(Date other) => _daysSinceEpoch < other._daysSinceEpoch;
@@ -232,8 +248,6 @@ class Date implements Comparable<Date> {
   int compareTo(Date other) {
     return _daysSinceEpoch.compareTo(other._daysSinceEpoch);
   }
-
-  int get millisecondsSinceEpoch => _time.millisecondsSinceEpoch;
 }
 
 class DateRange {

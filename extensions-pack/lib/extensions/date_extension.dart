@@ -33,6 +33,10 @@ extension DateExtension on Date {
   Date get sundayBefore {
     Date sunday = this;
 
+    if (sunday.weekday == DateTime.sunday) {
+      return sunday.addDays(-7);
+    }
+
     while (sunday.weekday != DateTime.sunday) {
       sunday = sunday.addDays(-1);
     }

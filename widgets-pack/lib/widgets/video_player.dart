@@ -12,9 +12,11 @@ class VideoPlayer extends StatelessWidget {
   final bool autoPlay;
   final bool muted;
   final WPVideoPlayerConfig? config;
+  final double aspectRatio;
 
   const VideoPlayer({
     required this.source,
+    this.aspectRatio = 16 / 9,
     this.autoPlay = false,
     this.muted = false,
     this.config,
@@ -28,19 +30,20 @@ class VideoPlayer extends StatelessWidget {
     bool muted = false,
     WPVideoPlayerConfig? config,
     Color barrierColor = const Color(0xA604181F),
+    double aspectRatio = 16 / 9,
   }) async {
     return showDialog(
       context: context,
       barrierColor: barrierColor,
       builder: (_) {
-        return Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 800,
-            ),
-            child: AspectRatio(
-              aspectRatio: 16 / 9,
+        return SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: 800,
+              ),
               child: VideoPlayer(
+                aspectRatio: aspectRatio,
                 source: source,
                 autoPlay: autoPlay,
                 muted: muted,
@@ -93,6 +96,7 @@ class VideoPlayer extends StatelessWidget {
 
     return _AssetPlayer(
       key: ValueKey(source),
+      aspectRatio: aspectRatio,
       videoPath: source,
       autoPlay: autoPlay,
       muted: muted,
@@ -443,11 +447,13 @@ class _AssetPlayer extends StatefulWidget {
   final String videoPath;
   final bool autoPlay;
   final bool muted;
+  final double aspectRatio;
 
   const _AssetPlayer({
     required this.videoPath,
     required this.autoPlay,
     required this.muted,
+    required this.aspectRatio,
     super.key,
   });
 
@@ -498,7 +504,7 @@ class _AssetPlayerState extends State<_AssetPlayer> {
       showOptions: false,
       autoPlay: widget.autoPlay,
       looping: true,
-      aspectRatio: 16 / 9,
+      aspectRatio: widget.aspectRatio,
     );
 
     setState(() {});
@@ -526,17 +532,14 @@ class _AssetPlayerState extends State<_AssetPlayer> {
           }
         },
         child: _controllerInitialized
-            ? FittedBox(
-                fit: BoxFit.cover,
-                child: SizedBox(
-                  width: _chewieController!.videoPlayerController.value.size.width,
-                  height: _chewieController!.videoPlayerController.value.size.height,
-                  child: Chewie(
-                    controller: _chewieController!,
-                  ),
+            ? SizedBox(
+                width: _chewieController!.videoPlayerController.value.size.width,
+                height: _chewieController!.videoPlayerController.value.size.height,
+                child: Chewie(
+                  controller: _chewieController!,
                 ),
               )
-            : const SizedBox(),
+            : const Center(child: AppCircularLoader()),
       ),
     );
   }
