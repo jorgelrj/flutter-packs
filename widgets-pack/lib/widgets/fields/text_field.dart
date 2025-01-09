@@ -234,7 +234,10 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
 
   String? _validator(String? value) {
     final error = widget.validator?.call(value);
-    _configNotifier.value = _configNotifier.value.copyWith(error: () => error);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _configNotifier.value = _configNotifier.value.copyWith(error: () => error);
+    });
 
     return error;
   }
