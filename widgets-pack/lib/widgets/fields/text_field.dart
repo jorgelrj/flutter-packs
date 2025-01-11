@@ -33,6 +33,7 @@ enum AppTextFormFieldErrorType {
 class AppTextFormField extends StatefulWidget {
   static String tapRegionGroupId = 'AppTextFieldGroupId';
 
+  final bool? alignLabelWithHint;
   final List<String>? autofillHints;
   final AutovalidateMode autoValidateMode;
   final InputBorder? border;
@@ -95,6 +96,7 @@ class AppTextFormField extends StatefulWidget {
   final VoidCallback? onTap;
 
   const AppTextFormField({
+    this.alignLabelWithHint,
     this.autofillHints,
     this.autoValidateMode = AutovalidateMode.disabled,
     this.border,
@@ -153,6 +155,7 @@ class AppTextFormField extends StatefulWidget {
   });
 
   AppTextFormField.search({
+    this.alignLabelWithHint,
     this.border,
     this.constraints,
     this.contentPadding,
@@ -353,6 +356,7 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
                 maxLength: widget.maxLength,
                 textAlign: widget.textAlign,
                 decoration: InputDecoration(
+                  alignLabelWithHint: widget.alignLabelWithHint,
                   hoverColor: widget.hoverColor,
                   constraints: widget.constraints,
                   contentPadding: widget.contentPadding,
