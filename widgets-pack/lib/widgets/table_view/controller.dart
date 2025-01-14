@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:widgets_pack/widgets/widgets.dart';
 import 'package:uuid/uuid.dart';
+import 'package:widgets_pack/widgets/widgets.dart';
 
 abstract class AppTableViewController<M extends Object> extends ChangeNotifier {
   AppTableViewController() {

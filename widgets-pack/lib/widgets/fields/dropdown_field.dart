@@ -568,13 +568,6 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   void didUpdateWidget(covariant AppDropDownFormField<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.fetcher != widget.fetcher) {
-      _loadedAll = false;
-      _itemNotifier.value = <T>[];
-
-      _search(_textController.text);
-    }
-
     if (oldWidget.handler != widget.handler) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         switch (widget.handler) {
@@ -606,6 +599,18 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
 
     if (oldWidget.loading != widget.loading) {
       _loading = widget.loading;
+    }
+
+    if (oldWidget.fetcher != widget.fetcher) {
+      _loadedAll = false;
+      _itemNotifier.value = <T>[];
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _search(
+          _textController.text,
+          fromInputChange: true,
+        );
+      });
     }
   }
 
