@@ -263,7 +263,11 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
     _focusNode.addListener(_focusListener);
 
     if (widget.initialValue != null) {
-      _controller.text = widget.initialValue!;
+      _controller.value = widget.inputFormatters?.fold<TextEditingValue>(
+            TextEditingValue(text: widget.initialValue!),
+            (newValue, formatter) => formatter.formatEditUpdate(newValue, newValue),
+          ) ??
+          TextEditingValue(text: widget.initialValue!);
     }
 
     _debounceSearch.distinct().debounceTime(widget.debounceTime).listen((event) async {
@@ -289,7 +293,13 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
 
     if (widget.initialValue != oldWidget.initialValue && !_focusNode.hasFocus) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _controller.text = widget.initialValue ?? '';
+        // _controller.text = widget.initialValue ?? '';
+        final value = TextEditingValue(text: widget.initialValue ?? '');
+        _controller.value = widget.inputFormatters?.fold<TextEditingValue>(
+              value,
+              (newValue, formatter) => formatter.formatEditUpdate(value, newValue),
+            ) ??
+            value;
       });
     }
   }
