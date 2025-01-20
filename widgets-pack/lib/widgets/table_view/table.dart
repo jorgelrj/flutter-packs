@@ -15,6 +15,7 @@ class AppTableView<M extends Object> extends StatefulWidget {
   final ScrollController? horizontalScrollController;
   final WidgetBuilder? aboveTableBuilder;
   final Widget Function(BuildContext context, List<Widget> filters)? filtersBuilder;
+  final WidgetBuilder? headerBuilder;
 
   const AppTableView({
     required this.controller,
@@ -23,6 +24,7 @@ class AppTableView<M extends Object> extends StatefulWidget {
     this.horizontalScrollController,
     this.aboveTableBuilder,
     this.filtersBuilder,
+    this.headerBuilder,
     super.key,
   });
 
@@ -119,20 +121,22 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
   Widget build(BuildContext context) {
     final showActionsColumn =
         (config.showActionsAsTrailingIcon && config.actions != null) || config.persistentTrailingActions != null;
-    final showEmptyState = config.emptyStateBuilder != null && !controller.loading && controller.items.isEmpty;
     final showFiltersRow = config.filters.isNotEmpty || config.action != null;
 
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
+        final showEmptyState = config.emptyStateBuilder != null && !controller.loading && controller.items.isEmpty;
+
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.headerBuilder != null && showFiltersRow) widget.headerBuilder!(context),
             ValueListenableBuilder<bool>(
               valueListenable: _hasSelectionNotifier,
-              builder: (context, showActions, child) {
-                if (showActions && config.actions != null) {
+              builder: (context, hasSelection, child) {
+                if (hasSelection && config.actions != null) {
                   return AnimatedBuilder(
                     animation: controller,
                     builder: (context, child) {
@@ -157,7 +161,7 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                       );
                 }
 
-                return const SizedBox();
+                return widget.headerBuilder?.call(context) ?? const SizedBox();
               },
             ),
             if (widget.aboveTableBuilder != null) widget.aboveTableBuilder!(context),
