@@ -142,7 +142,9 @@ abstract class AppTableViewController<M extends Object> extends ChangeNotifier {
     selectedItems = [];
   }
 
-  bool itemAtIndexIsSelected(int index) {
+  bool itemAtIndexIsSelected(int _index, {bool adjustForPage = false}) {
+    final index = adjustForPage ? _index + _currentPage * _pageSize : _index;
+
     if (index < 0 || index >= currentPageItems.length) {
       return false;
     }

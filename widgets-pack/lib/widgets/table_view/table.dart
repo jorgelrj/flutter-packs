@@ -16,6 +16,9 @@ class AppTableView<M extends Object> extends StatefulWidget {
   final WidgetBuilder? aboveTableBuilder;
   final Widget Function(BuildContext context, List<Widget> filters)? filtersBuilder;
   final WidgetBuilder? headerBuilder;
+  final Widget Function(BuildContext context, Widget child)? actionsWrapperBuilder;
+  final bool showCheckboxColumn;
+  final Color? selectedRowColor;
 
   const AppTableView({
     required this.controller,
@@ -25,6 +28,9 @@ class AppTableView<M extends Object> extends StatefulWidget {
     this.aboveTableBuilder,
     this.filtersBuilder,
     this.headerBuilder,
+    this.actionsWrapperBuilder,
+    this.showCheckboxColumn = true,
+    this.selectedRowColor,
     super.key,
   });
 
@@ -140,12 +146,14 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                   return AnimatedBuilder(
                     animation: controller,
                     builder: (context, child) {
-                      return AppTableActionsRow(
+                      final actionsRow = AppTableActionsRow(
                         items: controller.selectedItems,
                         actions: config.actions,
                         onClearAll: controller.clearSelection,
                         itemsSelectedTextBuilder: widget.config.itemsSelectedString,
                       );
+
+                      return widget.actionsWrapperBuilder?.call(context, actionsRow) ?? actionsRow;
                     },
                   );
                 }
@@ -193,13 +201,14 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _CheckBoxesColumn(
-                      controller: controller,
-                      checkboxScrollController: _checkboxScrollController,
-                      hoveredRowNotifier: _hoveredRowNotifier,
-                      pageSizeNotifier: _pageSizeNotifier,
-                      showCheckBoxNotifier: _showCheckBoxNotifier,
-                    ),
+                    if (widget.showCheckboxColumn)
+                      _CheckBoxesColumn(
+                        controller: controller,
+                        checkboxScrollController: _checkboxScrollController,
+                        hoveredRowNotifier: _hoveredRowNotifier,
+                        pageSizeNotifier: _pageSizeNotifier,
+                        showCheckBoxNotifier: _showCheckBoxNotifier,
+                      ),
                     Expanded(
                       child: ScrollOverflowBuilder(
                         controller: _horizontalScrollController,
@@ -214,6 +223,7 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                               config: config,
                               pageSize: pageSize + 1,
                               hoveredRowNotifier: _hoveredRowNotifier,
+                              selectedRowColor: widget.selectedRowColor,
                             );
                           },
                         ),
@@ -596,6 +606,7 @@ class _TableView<M extends Object> extends StatefulWidget {
   final ScrollController horizontalScrollController;
   final ScrollController verticalScrollController;
   final ValueNotifier<int?> hoveredRowNotifier;
+  final Color? selectedRowColor;
 
   const _TableView({
     required this.columns,
@@ -605,6 +616,7 @@ class _TableView<M extends Object> extends StatefulWidget {
     required this.horizontalScrollController,
     required this.verticalScrollController,
     required this.hoveredRowNotifier,
+    required this.selectedRowColor,
     super.key,
   });
 
@@ -619,9 +631,17 @@ class _TableViewState<M extends Object> extends State<_TableView<M>> {
   late final _loadingNotifier = ValueNotifier<bool>(
     widget.controller.loading,
   );
+  late final _selectedItemsNotifier = ValueNotifier<List<M>>(widget.controller.selectedItems);
 
   void _controllerListener() {
     _loadingNotifier.value = widget.controller.loading;
+
+    if (_selectedItemsNotifier.value != widget.controller.selectedItems) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _selectedItemsNotifier.value = widget.controller.selectedItems;
+        setState(() {});
+      });
+    }
   }
 
   Map<Type, GestureRecognizerFactory> _buildRowRecognizers(int index) {
@@ -803,10 +823,15 @@ class _TableViewState<M extends Object> extends State<_TableView<M>> {
           rowBuilder: (index) {
             final isHeader = index == 0;
             final isLastRow = index == widget.pageSize - 1;
+            final selected = widget.controller.itemAtIndexIsSelected(
+              index - 1,
+              adjustForPage: true,
+            );
 
             return TableSpan(
               cursor: isHeader ? SystemMouseCursors.basic : SystemMouseCursors.click,
               backgroundDecoration: TableSpanDecoration(
+                color: selected ? widget.selectedRowColor : null,
                 border: (isLastRow && !widget.config.showPagination)
                     ? null
                     : SpanBorder(
