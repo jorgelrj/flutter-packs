@@ -29,6 +29,8 @@ class _AppHoveringNotifierState extends State<AppHoveringNotifier> {
   late final _debouncer = Debouncer(duration: widget.duration);
   late final _hoveringNotifier = ValueNotifier(!kIsWeb && widget.forceHoveringOnMobile);
 
+  bool get _disabled => !widget.enabled || (widget.forceHoveringOnMobile && !kIsWeb);
+
   @override
   void initState() {
     super.initState();
@@ -57,26 +59,50 @@ class _AppHoveringNotifierState extends State<AppHoveringNotifier> {
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) {
-        if (!widget.enabled || (widget.forceHoveringOnMobile && !kIsWeb)) {
+    return GestureDetector(
+      excludeFromSemantics: true,
+      onTapUp: (_) {
+        if (_disabled) {
           return;
         }
 
-        _debouncer.dispose();
+        _hoveringNotifier.value = false;
+      },
+      onTapDown: (_) {
+        if (_disabled) {
+          return;
+        }
+
         _hoveringNotifier.value = true;
       },
-      onExit: (_) {
-        if (!widget.enabled || (widget.forceHoveringOnMobile && !kIsWeb)) {
+      onTapCancel: () {
+        if (_disabled) {
           return;
         }
 
-        _debouncer.run(() => _hoveringNotifier.value = false);
+        _hoveringNotifier.value = false;
       },
-      child: ValueListenableBuilder<bool>(
-        valueListenable: _hoveringNotifier,
-        builder: widget.builder,
-        child: widget.child,
+      child: MouseRegion(
+        onEnter: (_) {
+          if (_disabled) {
+            return;
+          }
+
+          _debouncer.dispose();
+          _hoveringNotifier.value = true;
+        },
+        onExit: (_) {
+          if (_disabled) {
+            return;
+          }
+
+          _debouncer.run(() => _hoveringNotifier.value = false);
+        },
+        child: ValueListenableBuilder<bool>(
+          valueListenable: _hoveringNotifier,
+          builder: widget.builder,
+          child: widget.child,
+        ),
       ),
     );
   }
