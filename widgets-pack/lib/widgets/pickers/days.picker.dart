@@ -220,8 +220,9 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
           ValueListenableBuilder<MonthAndYear>(
             valueListenable: _monthYearNotifier,
             builder: (context, selection, child) {
-              final daysInMonth = selection.toDateTime().daysInMonth;
-              final gridCount = 7 + ((daysInMonth / 7).ceil() * 7);
+              final daysInMonth = selection.toDate().daysInMonth;
+              final firstWeekDay = selection.monthRange.start.weekday;
+              final gridCount = 7 + (((daysInMonth + firstWeekDay - 1) / 7).ceil() * 7);
 
               return GridView.builder(
                 shrinkWrap: true,
@@ -240,7 +241,7 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
                   }
 
                   final realIndex = index - 7;
-                  final firstWeekDay = selection.toDateTime().weekDayBaseSunday;
+                  final firstWeekDay = selection.toDate().weekday;
 
                   if (realIndex < firstWeekDay - 1 || realIndex >= daysInMonth + firstWeekDay - 1) {
                     return const SizedBox();

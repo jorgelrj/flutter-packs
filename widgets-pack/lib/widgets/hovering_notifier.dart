@@ -59,50 +59,26 @@ class _AppHoveringNotifierState extends State<AppHoveringNotifier> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      excludeFromSemantics: true,
-      onTapUp: (_) {
+    return MouseRegion(
+      onEnter: (_) {
         if (_disabled) {
           return;
         }
 
-        _hoveringNotifier.value = false;
-      },
-      onTapDown: (_) {
-        if (_disabled) {
-          return;
-        }
-
+        _debouncer.dispose();
         _hoveringNotifier.value = true;
       },
-      onTapCancel: () {
+      onExit: (_) {
         if (_disabled) {
           return;
         }
 
-        _hoveringNotifier.value = false;
+        _debouncer.run(() => _hoveringNotifier.value = false);
       },
-      child: MouseRegion(
-        onEnter: (_) {
-          if (_disabled) {
-            return;
-          }
-
-          _debouncer.dispose();
-          _hoveringNotifier.value = true;
-        },
-        onExit: (_) {
-          if (_disabled) {
-            return;
-          }
-
-          _debouncer.run(() => _hoveringNotifier.value = false);
-        },
-        child: ValueListenableBuilder<bool>(
-          valueListenable: _hoveringNotifier,
-          builder: widget.builder,
-          child: widget.child,
-        ),
+      child: ValueListenableBuilder<bool>(
+        valueListenable: _hoveringNotifier,
+        builder: widget.builder,
+        child: widget.child,
       ),
     );
   }
