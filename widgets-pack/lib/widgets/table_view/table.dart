@@ -639,7 +639,7 @@ class _TableViewState<M extends Object> extends State<_TableView<M>> {
     if (_selectedItemsNotifier.value != widget.controller.selectedItems) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _selectedItemsNotifier.value = widget.controller.selectedItems;
-        setState(() {});
+        if (mounted) setState(() {});
       });
     }
   }
