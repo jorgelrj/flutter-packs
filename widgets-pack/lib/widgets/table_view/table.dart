@@ -19,6 +19,8 @@ class AppTableView<M extends Object> extends StatefulWidget {
   final Widget Function(BuildContext context, Widget child)? actionsWrapperBuilder;
   final bool showCheckboxColumn;
   final Color? selectedRowColor;
+  final ValueChanged<int>? onPageChanged;
+  final ValueChanged<int>? onLimitChanged;
 
   const AppTableView({
     required this.controller,
@@ -31,6 +33,8 @@ class AppTableView<M extends Object> extends StatefulWidget {
     this.actionsWrapperBuilder,
     this.showCheckboxColumn = true,
     this.selectedRowColor,
+    this.onPageChanged,
+    this.onLimitChanged,
     super.key,
   });
 
@@ -79,6 +83,8 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
     _showCheckBoxNotifier.value = controller.actionsType != TableActionsType.none;
     _pageNotifier.value = controller.currentPage;
 
+    widget.onPageChanged?.call(controller.currentPage);
+    widget.onLimitChanged?.call(controller.pageSize);
     widget.config.onItemsSelected?.call(widget.controller.selectedItems);
   }
 

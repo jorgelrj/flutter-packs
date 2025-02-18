@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:widgets_pack/widgets_pack.dart';
 
+const _kSingleContentWidth = 360.0;
+const _kMultiContentWidth = 720.0;
+
 class DateRangeFilterOption {
   final String label;
   final DateRange range;
@@ -51,6 +54,8 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
   final _chipKey = GlobalKey();
   final _centerCalendarKey = UniqueKey();
   final _scrollController = ScrollController();
+
+  bool _showingCalendar = true;
 
   String get _label {
     final range = _rangeNotifier.value;
@@ -132,12 +137,14 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
           return const SizedBox();
         }
 
+        print(context.screenSize.width);
+
         return Positioned(
           top: position.dy,
           left: position.dx,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 360 * 2,
+            constraints: BoxConstraints(
+              maxWidth: _kMultiContentWidth.clamp(0, context.screenSize.width - 64),
               maxHeight: 524,
             ),
             child: TapRegion(
@@ -157,104 +164,94 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                ValueListenableBuilder<int>(
-                                  valueListenable: _optionNotifier,
-                                  builder: (context, option, child) {
-                                    return ListTile(
-                                      title: const Text('Custom'),
-                                      trailing: const Icon(Icons.arrow_right),
-                                      selected: option == 0,
-                                      onTap: () {
-                                        _optionNotifier.value = 0;
-                                        _displayNotifier.value = (null, null);
-                                      },
-                                    );
-                                  },
-                                ),
-                                for (final (index, option) in widget.options.indexed)
+                          if (context.screenSize.width > _kMultiContentWidth || !_showingCalendar)
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
                                   ValueListenableBuilder<int>(
                                     valueListenable: _optionNotifier,
-                                    builder: (context, optionIndex, child) {
+                                    builder: (context, option, child) {
                                       return ListTile(
-                                        title: Text(option.label),
-                                        selected: index + 1 == optionIndex,
+                                        title: const Text('Custom'),
+                                        trailing: const Icon(Icons.arrow_right),
+                                        selected: option == 0,
                                         onTap: () {
-                                          _optionNotifier.value = index + 1;
-                                          _displayNotifier.value = (null, option.range);
+                                          _optionNotifier.value = 0;
+                                          _displayNotifier.value = (null, null);
+                                          setState(() {
+                                            _showingCalendar = true;
+                                          });
                                         },
                                       );
                                     },
                                   ),
-                              ],
+                                  for (final (index, option) in widget.options.indexed)
+                                    ValueListenableBuilder<int>(
+                                      valueListenable: _optionNotifier,
+                                      builder: (context, optionIndex, child) {
+                                        return ListTile(
+                                          title: Text(option.label),
+                                          selected: index + 1 == optionIndex,
+                                          onTap: () {
+                                            _optionNotifier.value = index + 1;
+                                            _displayNotifier.value = (null, option.range);
+                                            setState(() {
+                                              _showingCalendar = true;
+                                            });
+                                          },
+                                        );
+                                      },
+                                    ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const VerticalDivider(),
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Padding(
-                                  padding: kXSVertical,
-                                  child: Row(
-                                    children: List<Widget>.generate(7, (index) {
-                                      return Center(
-                                        child: BodyLarge(
-                                          ['S', 'M', 'T', 'W', 'T', 'F', 'S'][index],
-                                        ),
-                                      );
-                                    }).expanded(),
+                          if (context.screenSize.width > _kMultiContentWidth) const VerticalDivider(),
+                          if (context.screenSize.width > _kMultiContentWidth || _showingCalendar)
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: kXSVertical,
+                                    child: Row(
+                                      children: List<Widget>.generate(7, (index) {
+                                        return Center(
+                                          child: BodyLarge(
+                                            ['S', 'M', 'T', 'W', 'T', 'F', 'S'][index],
+                                          ),
+                                        );
+                                      }).expanded(),
+                                    ),
                                   ),
-                                ),
-                                Expanded(
-                                  child: CustomScrollView(
-                                    anchor: 0.1,
-                                    center: _centerCalendarKey,
-                                    controller: _scrollController,
-                                    slivers: [
-                                      SliverList.builder(
-                                        itemBuilder: (context, index) {
-                                          return ValueListenableBuilder<(Date?, DateRange?)>(
-                                            valueListenable: _displayNotifier,
-                                            builder: (context, display, child) {
-                                              return _Calendar(
-                                                selectedFirstDate: display.$1,
-                                                selectedRange: display.$2,
-                                                firstDate: widget.startDate,
-                                                lastDate: _lastDate,
-                                                onDateSelected: _handleDateSelected,
-                                                monthAndYear: MonthAndYear.fromDateTime(
-                                                  DateTime.now(),
-                                                ).subtractMonths(index + 1),
-                                              );
-                                            },
-                                          );
-                                        },
-                                      ),
-                                      SliverToBoxAdapter(
-                                        key: _centerCalendarKey,
-                                        child: ValueListenableBuilder<(Date?, DateRange?)>(
-                                          valueListenable: _displayNotifier,
-                                          builder: (context, display, child) {
-                                            return _Calendar(
-                                              selectedFirstDate: display.$1,
-                                              selectedRange: display.$2,
-                                              firstDate: widget.startDate,
-                                              lastDate: _lastDate,
-                                              onDateSelected: _handleDateSelected,
-                                              monthAndYear: MonthAndYear.fromDateTime(
-                                                DateTime.now(),
-                                              ),
+                                  Expanded(
+                                    child: CustomScrollView(
+                                      anchor: 0.1,
+                                      center: _centerCalendarKey,
+                                      controller: _scrollController,
+                                      slivers: [
+                                        SliverList.builder(
+                                          itemBuilder: (context, index) {
+                                            return ValueListenableBuilder<(Date?, DateRange?)>(
+                                              valueListenable: _displayNotifier,
+                                              builder: (context, display, child) {
+                                                return _Calendar(
+                                                  selectedFirstDate: display.$1,
+                                                  selectedRange: display.$2,
+                                                  firstDate: widget.startDate,
+                                                  lastDate: _lastDate,
+                                                  onDateSelected: _handleDateSelected,
+                                                  monthAndYear: MonthAndYear.fromDateTime(
+                                                    DateTime.now(),
+                                                  ).subtractMonths(index + 1),
+                                                );
+                                              },
                                             );
                                           },
                                         ),
-                                      ),
-                                      SliverList.builder(
-                                        itemBuilder: (context, index) {
-                                          return ValueListenableBuilder<(Date?, DateRange?)>(
+                                        SliverToBoxAdapter(
+                                          key: _centerCalendarKey,
+                                          child: ValueListenableBuilder<(Date?, DateRange?)>(
                                             valueListenable: _displayNotifier,
                                             builder: (context, display, child) {
                                               return _Calendar(
@@ -265,18 +262,36 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                                                 onDateSelected: _handleDateSelected,
                                                 monthAndYear: MonthAndYear.fromDateTime(
                                                   DateTime.now(),
-                                                ).addMonths(index + 1),
+                                                ),
                                               );
                                             },
-                                          );
-                                        },
-                                      ),
-                                    ],
+                                          ),
+                                        ),
+                                        SliverList.builder(
+                                          itemBuilder: (context, index) {
+                                            return ValueListenableBuilder<(Date?, DateRange?)>(
+                                              valueListenable: _displayNotifier,
+                                              builder: (context, display, child) {
+                                                return _Calendar(
+                                                  selectedFirstDate: display.$1,
+                                                  selectedRange: display.$2,
+                                                  firstDate: widget.startDate,
+                                                  lastDate: _lastDate,
+                                                  onDateSelected: _handleDateSelected,
+                                                  monthAndYear: MonthAndYear.fromDateTime(
+                                                    DateTime.now(),
+                                                  ).addMonths(index + 1),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -286,6 +301,17 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
+                          if (context.screenSize.width > _kMultiContentWidth || _showingCalendar) ...[
+                            AppButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _showingCalendar = false;
+                                });
+                              },
+                              icon: const Icon(Icons.arrow_back_ios_new),
+                            ),
+                            const Spacer(),
+                          ],
                           AppButton.text(
                             onPressed: _overlayController.hide,
                             child: const Text('Cancel'),

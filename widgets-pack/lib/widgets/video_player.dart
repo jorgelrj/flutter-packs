@@ -35,6 +35,7 @@ class VideoPlayer extends StatelessWidget {
     return showDialog(
       context: context,
       barrierColor: barrierColor,
+      routeSettings: const RouteSettings(name: 'VideoPlayerModal'),
       builder: (_) {
         return SafeArea(
           child: Center(

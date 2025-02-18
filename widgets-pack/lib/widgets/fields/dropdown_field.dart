@@ -170,7 +170,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   );
 
   bool get _openAsBottomSheet {
-    final asBottomSheet = widget.openAsBottomSheet || (widget.adaptive && View.of(context).physicalSize.width < 600);
+    final asBottomSheet = widget.openAsBottomSheet || (widget.adaptive && context.screenSize.width < 600);
 
     return asBottomSheet;
   }
@@ -276,6 +276,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   void _textFocusNodeListener() {
     if (mounted) {
       if (_textFocusNode.hasFocus) {
+        print('has focus');
         if (_openAsBottomSheet) {
           _showBottomSheet();
         } else if (!_openAsBottomSheet && _overlayEntry != null) {
@@ -719,9 +720,18 @@ class _BottomSheetContent extends StatelessWidget {
           labelText: labelText,
           hintText: hintText,
           onChanged: onTextChanged,
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(24)),
+            borderSide: BorderSide(color: context.colorScheme.surfaceContainerHigh),
+          ),
+          fillColor: context.colorScheme.surfaceContainerHigh,
+          filled: true,
         ),
-        Flexible(
-          child: itemsList,
+        SafeArea(
+          child: Flexible(
+            child: itemsList,
+          ),
         ),
       ],
     ).padded();
