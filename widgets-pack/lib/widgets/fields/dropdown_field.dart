@@ -307,6 +307,9 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   Future<void> _showBottomSheet() async {
     await showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      scrollControlDisabledMaxHeightRatio: 0.9,
+      useSafeArea: true,
       builder: (context) {
         _search('', fromInputChange: true);
 
@@ -418,6 +421,12 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
       if (items.contains(item)) {
         items.remove(item);
       } else {
+        if (widget.handler is AppMultipleItemsHandler<T> &&
+            (widget.handler as AppMultipleItemsHandler<T>).maxItems != null &&
+            items.length >= (widget.handler as AppMultipleItemsHandler<T>).maxItems!) {
+          return;
+        }
+
         items.add(item);
       }
     }
@@ -713,27 +722,32 @@ class _BottomSheetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AppTextFormField(
-          labelText: labelText,
-          hintText: hintText,
-          onChanged: onTextChanged,
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(24)),
-            borderSide: BorderSide(color: context.colorScheme.surfaceContainerHigh),
+    return AnimatedPadding(
+      padding: MediaQuery.of(context).viewInsets,
+      duration: const Duration(milliseconds: 150),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppTextFormField(
+            labelText: labelText,
+            hintText: hintText,
+            onChanged: onTextChanged,
+            prefixIcon: const Icon(Icons.search),
+            border: OutlineInputBorder(
+              borderRadius: const BorderRadius.all(Radius.circular(24)),
+              borderSide: BorderSide(color: context.colorScheme.surfaceContainerHigh),
+            ),
+            fillColor: context.colorScheme.surfaceContainerHigh,
+            filled: true,
           ),
-          fillColor: context.colorScheme.surfaceContainerHigh,
-          filled: true,
-        ),
-        SafeArea(
-          child: Flexible(
-            child: itemsList,
+          Flexible(
+            child: TextFieldTapRegion(
+              groupId: AppTextFormField.tapRegionGroupId,
+              child: itemsList,
+            ),
           ),
-        ),
-      ],
-    ).padded();
+        ],
+      ).padded(),
+    );
   }
 }

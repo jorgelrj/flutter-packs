@@ -49,11 +49,13 @@ class AppMultipleItemsHandler<T> extends AppItemsHandler<T> {
   final FutureOr<void> Function(List<T>) onChanged;
   final List<T> initialValue;
   final ListTileControlAffinity controlAffinity;
+  final int? maxItems;
 
   const AppMultipleItemsHandler(
     this.onChanged, {
     this.initialValue = const [],
     this.controlAffinity = ListTileControlAffinity.leading,
+    this.maxItems,
     super.compareItems,
     super.itemAsString,
     super.filterItems,
@@ -63,5 +65,5 @@ class AppMultipleItemsHandler<T> extends AppItemsHandler<T> {
   FutureOr<void> onListChanged(List<T> list) => onChanged(list);
 
   @override
-  List<Object?> get props => [initialValue];
+  List<Object?> get props => [initialValue, maxItems];
 }
