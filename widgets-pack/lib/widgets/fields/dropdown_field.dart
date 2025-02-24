@@ -267,7 +267,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
 
   void _textControllerListener() {
     _searchDebouncer.run(
-      () => _search(_textController.text),
+      () => _search(_textController.text, fromInputChange: true),
     );
 
     _overlayEntry?.markNeedsBuild();
@@ -276,7 +276,6 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   void _textFocusNodeListener() {
     if (mounted) {
       if (_textFocusNode.hasFocus) {
-        print('has focus');
         if (_openAsBottomSheet) {
           _showBottomSheet();
         } else if (!_openAsBottomSheet && _overlayEntry != null) {
@@ -665,7 +664,6 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
 
                   widget.onFocusChanged?.call(focused);
                 },
-                onChanged: (value) => _search(value, fromInputChange: true),
                 focusNode: _textFocusNode,
                 key: _widgetKey,
                 labelText: widget.labelText,
