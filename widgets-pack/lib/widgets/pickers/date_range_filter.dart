@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:widgets_pack/widgets_pack.dart';
 
-const _kSingleContentWidth = 360.0;
 const _kMultiContentWidth = 720.0;
 
 class DateRangeFilterOption {
@@ -136,8 +135,6 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
         if (position == null) {
           return const SizedBox();
         }
-
-        print(context.screenSize.width);
 
         return Positioned(
           top: position.dy,
@@ -423,10 +420,8 @@ class _Calendar extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         BodyLarge(
-          monthAndYear.toDateTime().formatBy(
-                DateFormat('MMMM'),
-              ),
-        ),
+          monthAndYear.toDateTime().formatBy(DateFormat('MMMM')),
+        ).padded(kXSLeft),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),

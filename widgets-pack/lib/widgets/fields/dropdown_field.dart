@@ -42,7 +42,6 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final bool readOnly;
   final Color? barrierColor;
   final bool openAsBottomSheet;
-  final bool adaptive;
   final ValueChanged<bool>? onFocusChanged;
 
   const AppDropDownFormField({
@@ -85,49 +84,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
     this.openAsBottomSheet = false,
     this.onFocusChanged,
     super.key,
-  }) : adaptive = false;
-
-  const AppDropDownFormField.adaptive({
-    required this.fetcher,
-    required this.handler,
-    this.labelText,
-    this.labelStyle,
-    this.hintText,
-    this.validator,
-    this.border,
-    this.focusedBorder,
-    this.overlayOpenBorder,
-    this.overlayBorder,
-    this.inputContentPadding,
-    this.tilesContentPadding,
-    this.showTrailing = true,
-    this.errorType = AppTextFormFieldErrorType.string,
-    this.tileBuilder,
-    this.enabled = true,
-    this.updateTextOnChanged = true,
-    this.filled,
-    this.fillColor,
-    this.keyboardType,
-    this.suffixIcon,
-    this.prefixIcon,
-    this.requestFocusOnInitState = false,
-    this.minLengthForSearch,
-    this.controller,
-    this.focusNode,
-    this.overlayColor,
-    this.overlayBorderRadius,
-    this.debounceDuration = const Duration(milliseconds: 350),
-    this.emptyBuilder,
-    this.loadingBuilder,
-    this.style,
-    this.loading = false,
-    this.showClearButton = true,
-    this.readOnly = false,
-    this.barrierColor,
-    this.openAsBottomSheet = false,
-    this.onFocusChanged,
-    super.key,
-  }) : adaptive = true;
+  });
 
   @override
   State<AppDropDownFormField<T>> createState() => _AppDropDownFormFieldState<T>();
@@ -169,11 +126,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     _selectedItemNotifier.value.isNotEmpty,
   );
 
-  bool get _openAsBottomSheet {
-    final asBottomSheet = widget.openAsBottomSheet || (widget.adaptive && context.screenSize.width < 600);
-
-    return asBottomSheet;
-  }
+  bool get _openAsBottomSheet => widget.openAsBottomSheet;
 
   bool _loadedAll = false;
   late bool _loading = widget.loading;
@@ -309,6 +262,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
       isScrollControlled: true,
       scrollControlDisabledMaxHeightRatio: 0.9,
       useSafeArea: true,
+      routeSettings: const RouteSettings(name: 'AppDropDownBottomSheet'),
       builder: (context) {
         _search('', fromInputChange: true);
 
