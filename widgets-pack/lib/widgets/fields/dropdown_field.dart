@@ -14,6 +14,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final InputBorder? border;
   final InputBorder? focusedBorder;
   final InputBorder? overlayOpenBorder;
+  final InputBorder? errorBorder;
   final BoxBorder? overlayBorder;
   final EdgeInsets? inputContentPadding;
   final EdgeInsets? tilesContentPadding;
@@ -54,6 +55,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
     this.border,
     this.focusedBorder,
     this.overlayOpenBorder,
+    this.errorBorder,
     this.overlayBorder,
     this.inputContentPadding,
     this.tilesContentPadding,
@@ -155,6 +157,10 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
       (_) => throw UnimplementedError('Fetcher not implemented'),
     };
 
+    if (!mounted) {
+      return;
+    }
+
     _filteredItemsNotifier.value = _itemNotifier.value.where((item) {
       return widget.handler.filter(item, search);
     }).toList();
@@ -192,6 +198,10 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   }
 
   Future<void> _remoteSearchFetcher(String search) async {
+    if (!mounted) {
+      return;
+    }
+
     _filteredItemsNotifier.value = <T>[];
     _itemNotifier.value = <T>[];
 
@@ -626,6 +636,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
                 hintText: widget.hintText,
                 border: showing ? (widget.overlayOpenBorder ?? widget.border) : widget.border,
                 focusedBorder: showing ? widget.overlayOpenBorder ?? widget.focusedBorder : widget.focusedBorder,
+                errorBorder: widget.errorBorder,
                 errorType: widget.errorType,
                 contentPadding: widget.inputContentPadding,
                 fillColor: widget.fillColor,
