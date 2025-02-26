@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class CommonValidator {
+  const CommonValidator._();
+
   static FormFieldValidator notNull([String? message]) {
     return (value) {
       if (value == null) {

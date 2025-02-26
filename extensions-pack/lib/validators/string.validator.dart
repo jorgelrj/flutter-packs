@@ -2,6 +2,8 @@ import 'package:extensions_pack/extensions_pack.dart';
 import 'package:flutter/material.dart';
 
 class StringValidator {
+  const StringValidator._();
+
   static FormFieldValidator<String> notEmpty([String? message]) {
     return (String? value) {
       if (value.isBlank) {

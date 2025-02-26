@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ListValidator {
+  const ListValidator._();
+
   static FormFieldValidator<List> chain(List<FormFieldValidator<List>> validators) {
     return (value) {
       for (final validator in validators) {
