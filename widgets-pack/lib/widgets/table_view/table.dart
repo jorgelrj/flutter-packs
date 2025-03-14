@@ -21,6 +21,7 @@ class AppTableView<M extends Object> extends StatefulWidget {
   final Color? selectedRowColor;
   final ValueChanged<int>? onPageChanged;
   final ValueChanged<int>? onLimitChanged;
+  final int pageSize;
 
   const AppTableView({
     required this.controller,
@@ -35,6 +36,7 @@ class AppTableView<M extends Object> extends StatefulWidget {
     this.selectedRowColor,
     this.onPageChanged,
     this.onLimitChanged,
+    this.pageSize = 10,
     super.key,
   });
 
@@ -52,7 +54,7 @@ class AppTableView<M extends Object> extends StatefulWidget {
 
 class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
   late final _pageSizeNotifier = ValueNotifier<int>(
-    controller.pageSize,
+    widget.pageSize,
   );
   late final _pageNotifier = ValueNotifier<int>(
     controller.currentPage,
@@ -94,7 +96,7 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
 
     controller
       ..actionsType = config.actionType
-      ..pageSize = config.pageSize
+      ..pageSize = widget.pageSize
       ..addListener(_controllerListener);
   }
 
@@ -106,8 +108,8 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
       controller.actionsType = config.actionType;
     }
 
-    if (oldWidget.config.pageSize != config.pageSize) {
-      controller.pageSize = config.pageSize;
+    if (oldWidget.pageSize != widget.pageSize) {
+      controller.pageSize = widget.pageSize;
     }
   }
 

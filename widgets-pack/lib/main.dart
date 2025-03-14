@@ -46,7 +46,6 @@ class _MyAppState extends State<MyApp> {
                       child: AppTableView<User>(
                         config: AppTableViewConfig(
                           actionType: TableActionsType.single,
-                          pageSize: 100,
                           showActionsAsTrailingIcon: true,
                           actions: (users) {
                             return [

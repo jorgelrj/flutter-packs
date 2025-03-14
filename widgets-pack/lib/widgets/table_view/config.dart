@@ -10,7 +10,6 @@ class AppTableViewConfig<M extends Object> extends Equatable {
   final bool showActionsAsTrailingIcon;
   final ValueChanged<M>? onDoubleTapRow;
   final WidgetBuilder? emptyStateBuilder;
-  final int pageSize;
   final int fixedColumns;
   final List<AppAction<M>> Function(M)? persistentTrailingActions;
   final Set<int> pageSizes;
@@ -26,7 +25,6 @@ class AppTableViewConfig<M extends Object> extends Equatable {
     this.showActionsAsTrailingIcon = false,
     this.onDoubleTapRow,
     this.emptyStateBuilder,
-    this.pageSize = 10,
     this.fixedColumns = 0,
     this.persistentTrailingActions,
     this.pageSizes = const {10},
@@ -41,7 +39,6 @@ class AppTableViewConfig<M extends Object> extends Equatable {
         action,
         actionType,
         showActionsAsTrailingIcon,
-        pageSize,
         fixedColumns,
         persistentTrailingActions,
         pageSizes,
