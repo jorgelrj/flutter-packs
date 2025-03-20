@@ -22,6 +22,7 @@ class AppTableView<M extends Object> extends StatefulWidget {
   final ValueChanged<int>? onPageChanged;
   final ValueChanged<int>? onLimitChanged;
   final int pageSize;
+  final bool shrinkWrap;
 
   const AppTableView({
     required this.controller,
@@ -37,6 +38,7 @@ class AppTableView<M extends Object> extends StatefulWidget {
     this.onPageChanged,
     this.onLimitChanged,
     this.pageSize = 10,
+    this.shrinkWrap = false,
     super.key,
   });
 
@@ -232,6 +234,7 @@ class _AppTableViewState<M extends Object> extends State<AppTableView<M>> {
                               pageSize: pageSize + 1,
                               hoveredRowNotifier: _hoveredRowNotifier,
                               selectedRowColor: widget.selectedRowColor,
+                              shrinkWrap: widget.shrinkWrap,
                             );
                           },
                         ),
@@ -525,9 +528,9 @@ class _CheckBoxesColumn<M extends Object> extends StatelessWidget {
 
                         return BorderSide(color: context.colorScheme.onSurface);
                       }),
+                      visualDensity: VisualDensity.compact,
                       value: selected,
                       onChanged: (value) => controller.handleSelectAll(),
-                      visualDensity: VisualDensity.compact,
                     );
                   },
                 ),
@@ -536,6 +539,7 @@ class _CheckBoxesColumn<M extends Object> extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 controller: checkboxScrollController,
+                primary: false,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: List.generate(
@@ -615,6 +619,7 @@ class _TableView<M extends Object> extends StatefulWidget {
   final ScrollController verticalScrollController;
   final ValueNotifier<int?> hoveredRowNotifier;
   final Color? selectedRowColor;
+  final bool shrinkWrap;
 
   const _TableView({
     required this.columns,
@@ -625,6 +630,7 @@ class _TableView<M extends Object> extends StatefulWidget {
     required this.verticalScrollController,
     required this.hoveredRowNotifier,
     required this.selectedRowColor,
+    required this.shrinkWrap,
     super.key,
   });
 
