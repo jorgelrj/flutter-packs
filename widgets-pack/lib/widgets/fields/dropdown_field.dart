@@ -44,6 +44,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final Color? barrierColor;
   final bool openAsBottomSheet;
   final ValueChanged<bool>? onFocusChanged;
+  final Widget? Function(T)? prefixBuilder;
 
   const AppDropDownFormField({
     required this.fetcher,
@@ -85,6 +86,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
     this.barrierColor,
     this.openAsBottomSheet = false,
     this.onFocusChanged,
+    this.prefixBuilder,
     super.key,
   });
 
@@ -174,9 +176,10 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     final fetcher = widget.fetcher as AppLocalItemsFetcher<T>;
     final items = fetcher.items;
 
-    setState(() => _loadedAll = true);
-
-    _itemNotifier.value = items;
+    if (mounted) {
+      setState(() => _loadedAll = true);
+      _itemNotifier.value = items;
+    }
   }
 
   Future<void> _remoteListFetcher(String search) async {
@@ -505,6 +508,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
                         onTap: onTapItem,
                         contentPadding: padding,
                         selected: selected,
+                        leading: widget.prefixBuilder?.call(item),
                       ),
                     final AppMultipleItemsHandler<T> handler => CheckboxListTile(
                         key: ObjectKey(item),
@@ -513,6 +517,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
                         onChanged: (_) => onTapItem(),
                         controlAffinity: handler.controlAffinity,
                         contentPadding: padding,
+                        secondary: widget.prefixBuilder?.call(item),
                       ),
                   };
                 },

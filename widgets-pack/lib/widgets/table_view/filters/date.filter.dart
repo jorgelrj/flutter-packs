@@ -1,8 +1,8 @@
 part of 'filter.dart';
 
 class AppDateFilterResult extends Equatable {
-  final DateTime? start;
-  final DateTime? end;
+  final Date? start;
+  final Date? end;
 
   const AppDateFilterResult({
     this.start,
@@ -12,12 +12,12 @@ class AppDateFilterResult extends Equatable {
   @override
   List<Object?> get props => [start, end];
 
-  DateTimeRange? get range {
+  DateRange? get range {
     if (start == null || end == null) {
       return null;
     }
 
-    return DateTimeRange(start: start!, end: end!);
+    return DateRange(start: start!, end: end!);
   }
 }
 
@@ -27,7 +27,7 @@ class AppDateFilter<M extends Object> extends AppFilter<M> {
   final AppDateFilterResult? initialValue;
   final bool allowRange;
   final bool allowNullValues;
-  final String Function(DateTime)? formatter;
+  final String Function(Date)? formatter;
   final bool enabled;
   final Color? overlayBackgroundColor;
   final bool closeOnSelect;
@@ -55,11 +55,11 @@ class _AppDateFilterState<M extends Object> extends _AppFilterState<M> {
 
   final _chipKey = GlobalKey<_AppDateFilterState<M>>();
 
-  late final _startDateNotifier = ValueNotifier<DateTime?>(
+  late final _startDateNotifier = ValueNotifier<Date?>(
     widget.initialValue?.start,
   );
 
-  late final _endDateNotifier = ValueNotifier<DateTime?>(
+  late final _endDateNotifier = ValueNotifier<Date?>(
     widget.initialValue?.end,
   );
 
@@ -89,8 +89,8 @@ class _AppDateFilterState<M extends Object> extends _AppFilterState<M> {
     return hasStartDate && allowEndDate ? 600 : 300;
   }
 
-  String _formatDate(DateTime date) {
-    return widget.formatter?.call(date) ?? DateFormat('dd/MM/yyyy').format(date);
+  String _formatDate(Date date) {
+    return widget.formatter?.call(date) ?? date.formatBy(DateFormat('dd/MM/yyyy'));
   }
 
   void _dateNotifierListener() {
@@ -169,7 +169,7 @@ class _AppDateFilterState<M extends Object> extends _AppFilterState<M> {
               return Positioned(
                 top: topPosition,
                 left: leftPosition,
-                child: ValueListenableBuilder<DateTime?>(
+                child: ValueListenableBuilder<Date?>(
                   valueListenable: _startDateNotifier,
                   builder: (context, startDate, child) {
                     final hasStartDate = startDate != null;
@@ -186,28 +186,28 @@ class _AppDateFilterState<M extends Object> extends _AppFilterState<M> {
                             child: Row(
                               children: [
                                 CalendarDatePicker(
-                                  initialDate: _startDateNotifier.value ?? DateTime.now(),
+                                  initialDate: (_startDateNotifier.value ?? Date.today()).toDateTime(local: true),
                                   firstDate: DateTime(2020),
                                   lastDate: DateTime.now() + const Duration(days: 365 * 5),
                                   onDateChanged: (date) {
-                                    _startDateNotifier.value = date;
+                                    _startDateNotifier.value = date.toDate();
                                     _endDateNotifier.value = null;
                                   },
                                 ),
                                 if (allowEndDate && hasStartDate)
-                                  ValueListenableBuilder<DateTime?>(
+                                  ValueListenableBuilder<Date?>(
                                     valueListenable: _endDateNotifier,
                                     builder: (context, endDate, child) {
                                       return CalendarDatePicker(
                                         key: ValueKey((startDate, endDate)),
-                                        initialDate: _endDateNotifier.value,
-                                        firstDate: startDate,
+                                        initialDate: _endDateNotifier.value?.toDateTime(local: true),
+                                        firstDate: startDate.toDateTime(local: true),
                                         lastDate: DateTime.now() + const Duration(days: 365 * 5),
                                         onDateChanged: (date) {
-                                          if (date == _endDateNotifier.value) {
+                                          if (date.toDate() == _endDateNotifier.value) {
                                             _endDateNotifier.value = null;
                                           } else {
-                                            _endDateNotifier.value = date;
+                                            _endDateNotifier.value = date.toDate();
                                           }
                                         },
                                       );
