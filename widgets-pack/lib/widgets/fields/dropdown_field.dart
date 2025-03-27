@@ -91,10 +91,10 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   });
 
   @override
-  State<AppDropDownFormField<T>> createState() => _AppDropDownFormFieldState<T>();
+  State<AppDropDownFormField<T>> createState() => AppDropDownFormFieldState<T>();
 }
 
-class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormField<T>> {
+class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormField<T>> {
   final _widgetKey = GlobalKey();
 
   RenderBox? get _renderBox {
@@ -131,6 +131,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   );
 
   bool get _openAsBottomSheet => widget.openAsBottomSheet;
+  final _scrollController = ScrollController();
 
   bool _loadedAll = false;
   late bool _loading = widget.loading;
@@ -138,6 +139,33 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
   String? _lastSearch;
 
   OverlayEntry? _overlayEntry;
+
+  void handleItem(T? item) {
+    return switch (widget.handler) {
+      (AppSingleItemHandler<T>()) => _handleSingleItem(item),
+      (AppMultipleItemsHandler<T>()) => _handleMultipleItems(item),
+    };
+  }
+
+  void addItem(T item) {
+    _itemNotifier.value = [..._itemNotifier.value, item];
+    _filteredItemsNotifier.value = [..._filteredItemsNotifier.value, item];
+    _overlayEntry?.markNeedsBuild();
+  }
+
+  Future<void> scrollToBottom() async {
+    if (!_scrollController.hasClients) {
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      return scrollToBottom();
+    }
+
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
 
   Future<void> _search(String search, {bool fromInputChange = false}) async {
     if (!fromInputChange) {
@@ -359,13 +387,6 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     );
   }
 
-  void _handleItem(T? item) {
-    return switch (widget.handler) {
-      (AppSingleItemHandler<T>()) => _handleSingleItem(item),
-      (AppMultipleItemsHandler<T>()) => _handleMultipleItems(item),
-    };
-  }
-
   void _handleSingleItem(T? item) {
     if (item == null) {
       _selectedItemNotifier.value = [];
@@ -477,6 +498,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
         return Material(
           type: MaterialType.transparency,
           child: ListView.separated(
+            controller: _scrollController,
             itemCount: items.length,
             shrinkWrap: true,
             padding: EdgeInsets.zero,
@@ -492,7 +514,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
                     return widget.handler.compare(selected, item);
                   });
 
-                  void onTapItem() => _handleItem(item);
+                  void onTapItem() => handleItem(item);
 
                   final textWg = Text(widget.handler.asString(item));
                   final padding = widget.tilesContentPadding;
@@ -600,13 +622,18 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
     _hasItemsNotifier.dispose();
     _showingOverlayNotifier.dispose();
     _highlightedIndexNotifier.dispose();
+    _scrollController.dispose();
 
     if (widget.controller == null) {
       _textController.dispose();
+    } else {
+      widget.controller!.removeListener(_textControllerListener);
     }
 
     if (widget.focusNode == null) {
       _textFocusNode.dispose();
+    } else {
+      widget.focusNode!.removeListener(_textFocusNodeListener);
     }
 
     super.dispose();
@@ -660,7 +687,7 @@ class _AppDropDownFormFieldState<T extends Object> extends State<AppDropDownForm
                     ? hasItems
                         ? widget.showClearButton
                             ? AppButton.icon(
-                                onPressed: () => _handleItem(null),
+                                onPressed: () => handleItem(null),
                                 icon: const Icon(Icons.close),
                               )
                             : const Icon(Icons.arrow_drop_down)
