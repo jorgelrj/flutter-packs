@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:widgets_pack/helpers/helpers.dart';
 import 'package:widgets_pack/widgets/widgets.dart';
 
-typedef TableActionFn<M extends Object> = List<AppAction<M>> Function(List<M> items);
+typedef TableActionFn<M extends Object> = List<AppAction> Function(List<M> items);
 
 class AppTableActionsRow<M extends Object> extends StatelessWidget {
   final List<M> items;
@@ -19,8 +19,8 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
     super.key,
   });
 
-  Widget _buildAction(AppAction<M> action, [bool useSubGroups = false]) {
-    if (action is AppActionDivider<M>) {
+  Widget _buildAction(AppAction action, [bool useSubGroups = false]) {
+    if (action is AppActionDivider) {
       if (useSubGroups) {
         return const Divider();
       }
@@ -31,7 +31,7 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
       );
     }
 
-    if (action is AppActionsGroup<M>) {
+    if (action is AppActionsGroup) {
       if (useSubGroups) {
         return SubmenuButton(
           menuChildren: [
@@ -89,9 +89,9 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final _strings = context.wpStringsConfig.table;
-    List<AppAction<M>> appActions = actions?.call(items).toList() ?? <AppAction<M>>[];
+    List<AppAction> appActions = actions?.call(items).toList() ?? <AppAction>[];
 
-    if (appActions.firstOrNull is AppActionDivider<M>) {
+    if (appActions.firstOrNull is AppActionDivider) {
       appActions = appActions.skip(1).toList();
     }
 
