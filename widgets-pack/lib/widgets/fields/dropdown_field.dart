@@ -178,6 +178,10 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
       }
     }
 
+    if (search == _lastSearch) {
+      return;
+    }
+
     _lastSearch = search;
 
     await switch (widget.fetcher) {
@@ -315,6 +319,8 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
         );
       },
     );
+
+    _setTextValue();
 
     _textFocusNode.unfocus();
   }
@@ -717,9 +723,12 @@ class _BottomSheetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedPadding(
+    return AnimatedContainer(
       padding: MediaQuery.of(context).viewInsets,
       duration: const Duration(milliseconds: 150),
+      constraints: BoxConstraints(
+        minHeight: context.screenSize.height * 0.5,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
