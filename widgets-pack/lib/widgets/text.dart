@@ -25,6 +25,7 @@ sealed class _AppText extends Text {
   final TextDecoration? _decoration;
   final FontWeight? _fontWeight;
   final double? _fontSize;
+  final List<FontFeature>? _fontFeatures;
 
   const _AppText(
     super.data, {
@@ -38,10 +39,12 @@ sealed class _AppText extends Text {
     TextDecoration? decoration,
     FontWeight? fontWeight,
     double? fontSize,
+    List<FontFeature>? fontFeatures,
   })  : _color = color,
         _decoration = decoration,
         _fontWeight = fontWeight,
-        _fontSize = fontSize;
+        _fontSize = fontSize,
+        _fontFeatures = fontFeatures;
 
   _AppText copyWith({
     String? text,
@@ -53,6 +56,7 @@ sealed class _AppText extends Text {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   });
 
   _AppText color(Color? color) {
@@ -120,6 +124,12 @@ sealed class _AppText extends Text {
     );
   }
 
+  _AppText fontFeatures(List<FontFeature>? fontFeatures) {
+    return copyWith(
+      fontFeatures: fontFeatures,
+    );
+  }
+
   TextStyle _getTextStyle(BuildContext context) {
     final textTheme = context.textTheme;
 
@@ -146,6 +156,7 @@ sealed class _AppText extends Text {
       decoration: _decoration,
       fontWeight: _fontWeight,
       fontSize: _fontSize,
+      fontFeatures: _fontFeatures,
     );
 
     return textStyle?.merge(effectiveStyle) ?? effectiveStyle;
@@ -172,6 +183,7 @@ class DisplayLarge extends _AppText {
     super.softWrap,
     super.maxLines,
     super.overflow,
+    super.fontFeatures,
   }) : super(
           textStyle: _TextStyle.displayLarge,
         );
@@ -188,6 +200,7 @@ class DisplayLarge extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -201,6 +214,7 @@ class DisplayLarge extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return DisplayLarge._(
       text ?? data!,
@@ -214,6 +228,7 @@ class DisplayLarge extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -242,6 +257,7 @@ class DisplayMedium extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -255,6 +271,7 @@ class DisplayMedium extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return DisplayMedium._(
       text ?? data!,
@@ -268,6 +285,7 @@ class DisplayMedium extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -296,6 +314,7 @@ class DisplaySmall extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -309,6 +328,7 @@ class DisplaySmall extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return DisplaySmall._(
       text ?? data!,
@@ -322,6 +342,7 @@ class DisplaySmall extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -350,6 +371,7 @@ class TitleLarge extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -363,6 +385,7 @@ class TitleLarge extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return TitleLarge._(
       text ?? data!,
@@ -376,6 +399,7 @@ class TitleLarge extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -404,6 +428,7 @@ class BodyLarge extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -417,6 +442,7 @@ class BodyLarge extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return BodyLarge._(
       text ?? data!,
@@ -430,6 +456,7 @@ class BodyLarge extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -442,6 +469,7 @@ class TitleSmall extends _AppText {
     super.softWrap,
     super.maxLines,
     super.overflow,
+    super.fontFeatures,
   }) : super(
           textStyle: _TextStyle.titleSmall,
         );
@@ -458,6 +486,7 @@ class TitleSmall extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -471,6 +500,7 @@ class TitleSmall extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return TitleSmall._(
       text ?? data!,
@@ -484,6 +514,7 @@ class TitleSmall extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -496,6 +527,7 @@ class BodySmall extends _AppText {
     super.softWrap,
     super.maxLines,
     super.overflow,
+    super.fontFeatures,
   }) : super(
           textStyle: _TextStyle.bodySmall,
         );
@@ -512,6 +544,7 @@ class BodySmall extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -525,6 +558,7 @@ class BodySmall extends _AppText {
     TextOverflow? overflow,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return BodySmall._(
       text ?? data!,
@@ -538,6 +572,7 @@ class BodySmall extends _AppText {
       color: color ?? _color,
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -566,6 +601,7 @@ class TitleMedium extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -579,6 +615,7 @@ class TitleMedium extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return TitleMedium._(
       text ?? data!,
@@ -592,6 +629,7 @@ class TitleMedium extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -604,6 +642,7 @@ class BodyMedium extends _AppText {
     super.softWrap,
     super.maxLines,
     super.overflow,
+    super.fontFeatures,
   }) : super(
           textStyle: _TextStyle.bodyMedium,
         );
@@ -620,6 +659,7 @@ class BodyMedium extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -633,6 +673,7 @@ class BodyMedium extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return BodyMedium._(
       text ?? data!,
@@ -646,6 +687,7 @@ class BodyMedium extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -658,6 +700,7 @@ class HeadlineSmall extends _AppText {
     super.softWrap,
     super.maxLines,
     super.overflow,
+    super.fontFeatures,
   }) : super(
           textStyle: _TextStyle.headlineSmall,
         );
@@ -674,6 +717,7 @@ class HeadlineSmall extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -687,6 +731,7 @@ class HeadlineSmall extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return HeadlineSmall._(
       text ?? data!,
@@ -700,6 +745,7 @@ class HeadlineSmall extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -712,6 +758,7 @@ class HeadlineMedium extends _AppText {
     super.softWrap,
     super.maxLines,
     super.overflow,
+    super.fontFeatures,
   }) : super(
           textStyle: _TextStyle.headlineMedium,
         );
@@ -728,6 +775,7 @@ class HeadlineMedium extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -741,6 +789,7 @@ class HeadlineMedium extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return HeadlineMedium._(
       text ?? data!,
@@ -754,6 +803,7 @@ class HeadlineMedium extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -766,6 +816,7 @@ class HeadlineLarge extends _AppText {
     super.softWrap,
     super.maxLines,
     super.overflow,
+    super.fontFeatures,
   }) : super(
           textStyle: _TextStyle.headlineLarge,
         );
@@ -782,6 +833,7 @@ class HeadlineLarge extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -795,6 +847,7 @@ class HeadlineLarge extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return HeadlineLarge._(
       text ?? data!,
@@ -808,6 +861,7 @@ class HeadlineLarge extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -820,6 +874,7 @@ class LabelSmall extends _AppText {
     super.softWrap,
     super.maxLines,
     super.overflow,
+    super.fontFeatures,
   }) : super(
           textStyle: _TextStyle.labelSmall,
         );
@@ -836,6 +891,7 @@ class LabelSmall extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -849,6 +905,7 @@ class LabelSmall extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return LabelSmall._(
       text ?? data!,
@@ -862,6 +919,7 @@ class LabelSmall extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -874,6 +932,7 @@ class LabelMedium extends _AppText {
     super.softWrap,
     super.maxLines,
     super.overflow,
+    super.fontFeatures,
   }) : super(
           textStyle: _TextStyle.labelMedium,
         );
@@ -890,6 +949,7 @@ class LabelMedium extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -903,6 +963,7 @@ class LabelMedium extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return LabelMedium._(
       text ?? data!,
@@ -916,6 +977,7 @@ class LabelMedium extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
@@ -928,6 +990,7 @@ class LabelLarge extends _AppText {
     super.softWrap,
     super.maxLines,
     super.overflow,
+    super.fontFeatures,
   }) : super(
           textStyle: _TextStyle.labelLarge,
         );
@@ -944,6 +1007,7 @@ class LabelLarge extends _AppText {
     super.decoration,
     super.fontWeight,
     super.fontSize,
+    super.fontFeatures,
   });
 
   @override
@@ -957,6 +1021,7 @@ class LabelLarge extends _AppText {
     double? fontSize,
     TextDecoration? decoration,
     FontWeight? fontWeight,
+    List<FontFeature>? fontFeatures,
   }) {
     return LabelLarge._(
       text ?? data!,
@@ -970,6 +1035,7 @@ class LabelLarge extends _AppText {
       decoration: decoration ?? _decoration,
       fontWeight: fontWeight ?? _fontWeight,
       fontSize: fontSize ?? _fontSize,
+      fontFeatures: fontFeatures ?? _fontFeatures,
     );
   }
 }
