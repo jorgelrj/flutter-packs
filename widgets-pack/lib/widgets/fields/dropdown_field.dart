@@ -184,6 +184,8 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
 
     _lastSearch = search;
 
+    if (!mounted) return;
+
     await switch (widget.fetcher) {
       (AppRemoteListItemsFetcher<T>()) => _remoteListFetcher(search),
       (AppLocalItemsFetcher<T>()) => _localListFetcher(search),
@@ -411,7 +413,11 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
     if (item == null) {
       items.clear();
     } else {
-      if (items.contains(item)) {
+      final selected = items.any((selected) {
+        return widget.handler.compare(selected, item);
+      });
+
+      if (selected) {
         items.remove(item);
       } else {
         if (widget.handler is AppMultipleItemsHandler<T> &&
