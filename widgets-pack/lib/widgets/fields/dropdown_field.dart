@@ -418,7 +418,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
       });
 
       if (selected) {
-        items.remove(item);
+        items.removeWhere((element) => widget.handler.compare(element, item));
       } else {
         if (widget.handler is AppMultipleItemsHandler<T> &&
             (widget.handler as AppMultipleItemsHandler<T>).maxItems != null &&
