@@ -136,8 +136,6 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
   bool _loadedAll = false;
   late bool _loading = widget.loading;
 
-  String? _lastSearch;
-
   OverlayEntry? _overlayEntry;
 
   void handleItem(T? item) {
@@ -178,12 +176,6 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
       }
     }
 
-    if (search == _lastSearch) {
-      return;
-    }
-
-    _lastSearch = search;
-
     if (!mounted) return;
 
     await switch (widget.fetcher) {
@@ -193,9 +185,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
       (_) => throw UnimplementedError('Fetcher not implemented'),
     };
 
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
     _filteredItemsNotifier.value = _itemNotifier.value.where((item) {
       return widget.handler.filter(item, search);
@@ -246,10 +236,6 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
 
     final fetcher = widget.fetcher as AppRemoteSearchListItemsFetcher<T>;
     final items = await fetcher.getItems(search);
-
-    if (search != _lastSearch) {
-      return;
-    }
 
     _setLoading(false);
 
