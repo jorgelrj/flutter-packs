@@ -47,10 +47,9 @@ class MonthAndYear extends Equatable {
     );
   }
 
-  DateRange get visibleCalendarRange {
-    final start = monthStart.addDays(-(monthStart.weekday - 1));
-
-    final end = monthEnd.addDays(7 - monthEnd.weekday);
+  DateRange visibleCalendarRange([int firstDayOfWeek = DateTime.saturday]) {
+    final start = monthStart.lastDateAs(firstDayOfWeek, returnIfToday: true);
+    final end = monthEnd.nextDateAs(firstDayOfWeek, returnIfToday: true);
 
     return DateRange(start: start, end: end);
   }
