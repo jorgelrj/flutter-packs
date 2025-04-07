@@ -53,17 +53,7 @@ class Date implements Comparable<Date> {
   factory Date.parse(String formattedDate) => Date.from(DateTime.parse(formattedDate));
 
   factory Date.lastDateAs(int weekday) {
-    Date start = Date.today();
-
-    if (start.weekday == weekday) {
-      return start.addDays(-7);
-    }
-
-    while (start.weekday != weekday) {
-      start = start.addDays(-1);
-    }
-
-    return start;
+    return Date.today().lastDateAs(weekday);
   }
 
   /// Tries to parse a formatted date.
@@ -237,6 +227,34 @@ class Date implements Comparable<Date> {
 
   /// Returns if this date is before [other].
   bool isBefore(Date other) => _time.isBefore(other._time);
+
+  Date lastDateAs(int weekday, {bool returnIfToday = false}) {
+    Date start = this;
+
+    if (start.weekday == weekday) {
+      return returnIfToday ? start : start.addDays(-7);
+    }
+
+    while (start.weekday != weekday) {
+      start = start.addDays(-1);
+    }
+
+    return start;
+  }
+
+  Date nextDateAs(int weekday, {bool returnIfToday = false}) {
+    Date start = this;
+
+    if (start.weekday == weekday) {
+      return returnIfToday ? start : start.addDays(7);
+    }
+
+    while (start.weekday != weekday) {
+      start = start.addDays(1);
+    }
+
+    return start;
+  }
 
   /// Days between -4713-11-24 and 1970-01-01.
   static const int _julianDayOfEpoch = 2440588;
