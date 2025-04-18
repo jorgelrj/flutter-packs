@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 
+class SubmenuSettings {
+  final bool closeOnActivate;
+
+  const SubmenuSettings({
+    this.closeOnActivate = true,
+  });
+}
+
 class AppAction<M extends Object> {
   final String label;
   final Widget _icon;
   final void Function()? onPressed;
   final String? tooltip;
   final TextStyle? style;
+  final SubmenuSettings? submenuSettings;
 
   const AppAction({
     required this.label,
@@ -13,6 +22,7 @@ class AppAction<M extends Object> {
     this.onPressed,
     this.tooltip,
     this.style,
+    this.submenuSettings,
   }) : _icon = icon ?? const SizedBox();
 
   Widget get icon => _icon;
@@ -65,6 +75,7 @@ extension AppActionExtension<M extends Object> on AppAction<M> {
             child: MenuItemButton(
               onPressed: action.onPressed,
               leadingIcon: action.icon,
+              closeOnActivate: action.submenuSettings?.closeOnActivate ?? true,
               child: Text(action.label, style: action.style),
             ),
           ),
