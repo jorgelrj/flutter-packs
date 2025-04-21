@@ -216,12 +216,14 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
     final fetcher = widget.fetcher as AppRemoteListItemsFetcher<T>;
     final items = await fetcher.getItems();
 
-    setState(() {
-      _loadedAll = true;
-      _loading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _loadedAll = true;
+        _loading = false;
+      });
 
-    _itemNotifier.value = items;
+      _itemNotifier.value = items;
+    }
   }
 
   Future<void> _remoteSearchFetcher(String search) async {
@@ -237,9 +239,11 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
     final fetcher = widget.fetcher as AppRemoteSearchListItemsFetcher<T>;
     final items = await fetcher.getItems(search);
 
-    _setLoading(false);
+    if (mounted) {
+      _setLoading(false);
 
-    _itemNotifier.value = items;
+      _itemNotifier.value = items;
+    }
   }
 
   void _setLoading(bool loading) {
