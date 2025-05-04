@@ -10,7 +10,8 @@ class SubmenuSettings {
 
 class AppAction<M extends Object> {
   final String label;
-  final Widget _icon;
+  final Widget? icon;
+  final Widget Function()? iconCallback;
   final void Function()? onPressed;
   final String? tooltip;
   final TextStyle? style;
@@ -18,14 +19,13 @@ class AppAction<M extends Object> {
 
   const AppAction({
     required this.label,
-    Widget? icon,
+    this.icon,
+    this.iconCallback,
     this.onPressed,
     this.tooltip,
     this.style,
     this.submenuSettings,
-  }) : _icon = icon ?? const SizedBox();
-
-  Widget get icon => _icon;
+  });
 }
 
 class AppActionDivider<M extends Object> extends AppAction<M> {
@@ -65,7 +65,7 @@ extension AppActionExtension<M extends Object> on AppAction<M> {
       final AppActionBuilder builder => builder.builder(),
       final AppActionsGroup group => SubmenuButton(
           menuChildren: group.items.toAnchorChildren(),
-          leadingIcon: group.icon,
+          leadingIcon: group.iconCallback?.call() ?? group.icon,
           child: Text(group.label, style: group.style),
         ),
       final AppAction action => TooltipVisibility(
@@ -74,7 +74,7 @@ extension AppActionExtension<M extends Object> on AppAction<M> {
             message: action.tooltip ?? action.label,
             child: MenuItemButton(
               onPressed: action.onPressed,
-              leadingIcon: action.icon,
+              leadingIcon: action.iconCallback?.call() ?? action.icon,
               closeOnActivate: action.submenuSettings?.closeOnActivate ?? true,
               child: Text(action.label, style: action.style),
             ),

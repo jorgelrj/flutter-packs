@@ -424,14 +424,14 @@ class _ActionsColumn<M extends Object> extends StatelessWidget {
                                           builder: (context, controller, child) {
                                             return AppButton.icon(
                                               onPressed: controller.toggle,
-                                              icon: action.icon,
+                                              icon: action.iconCallback?.call() ?? action.icon ?? const SizedBox(),
                                             );
                                           },
                                         );
                                       } else {
                                         return AppButton.icon(
                                           onPressed: action.onPressed,
-                                          icon: action.icon,
+                                          icon: action.iconCallback?.call() ?? action.icon ?? const SizedBox(),
                                         );
                                       }
                                     }),

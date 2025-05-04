@@ -65,7 +65,7 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
           return AppButton.icon(
             onPressed: controller.open,
             tooltip: action.tooltip ?? action.label,
-            icon: action.icon,
+            icon: action.iconCallback?.call() ?? action.icon ?? const SizedBox(),
           );
         },
       );
@@ -82,7 +82,7 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
     return AppButton.icon(
       onPressed: action.onPressed,
       tooltip: action.tooltip ?? action.label,
-      icon: action.icon,
+      icon: action.iconCallback?.call() ?? action.icon ?? const SizedBox(),
     );
   }
 
