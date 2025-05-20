@@ -51,7 +51,10 @@ class MonthAndYear extends Equatable {
     final start = monthStart.lastDateAs(firstDayOfWeek, returnIfToday: true);
     final end = monthEnd.nextDateAs(firstDayOfWeek, returnIfToday: true);
 
-    return DateRange(start: start, end: end);
+    return DateRange(
+      start: start,
+      end: end.addDays(-1),
+    );
   }
 
   bool get isCurrentMonthAndYear {
