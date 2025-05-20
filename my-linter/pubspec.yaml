@@ -2,7 +2,7 @@ name: my_linter
 
 description: Flutter project with a linter
 
-version: 0.1.1
+version: 0.1.2
 
 environment:
   sdk: ^3.0.0
