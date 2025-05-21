@@ -12,9 +12,22 @@ extension ColorExtension on Color {
 
   String toHex({bool leadingHashSign = true}) {
     return '${leadingHashSign ? '#' : ''}'
-        '${alpha.toRadixString(16).padLeft(2, '0')}'
-        '${red.toRadixString(16).padLeft(2, '0')}'
-        '${green.toRadixString(16).padLeft(2, '0')}'
-        '${blue.toRadixString(16).padLeft(2, '0')}';
+        '${alphaChannel.toRadixString(16).padLeft(2, '0')}'
+        '${redChannel.toRadixString(16).padLeft(2, '0')}'
+        '${greenChannel.toRadixString(16).padLeft(2, '0')}'
+        '${blueChannel.toRadixString(16).padLeft(2, '0')}';
+  }
+
+  int get alphaChannel => (a * 255.0).round() & 0xff;
+
+  int get redChannel => (r * 255.0).round() & 0xff;
+
+  int get greenChannel => (g * 255.0).round() & 0xff;
+
+  int get blueChannel => (b * 255.0).round() & 0xff;
+
+  Color applyOpacity(double opacity) {
+    assert(opacity >= 0.0 && opacity <= 1.0);
+    return withAlpha((255.0 * opacity).round());
   }
 }
