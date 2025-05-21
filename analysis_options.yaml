@@ -1,2 +1,15 @@
 include: package:my_linter/analysis_options.yaml
 
+formatter:
+  page_width: 120
+
+analyzer:
+  errors:
+    body_might_complete_normally_nullable: ignore
+    todo: ignore
+
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.gr.dart"
+    - "**/*_test.dart"
+    - "packages/**"

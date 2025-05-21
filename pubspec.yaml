@@ -5,4 +5,4 @@ environment:
 
 dev_dependencies:
   melos: ^6.2.0
-  my_linter: ^0.1.1
+  my_linter: ^0.1.2
