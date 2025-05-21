@@ -1,3 +1,4 @@
+import 'package:extensions_pack/extensions_pack.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:widgets_pack/helpers/helpers.dart';
@@ -84,6 +85,7 @@ class _AppMonthPickerState extends State<AppMonthPicker> with RestorationMixin {
 
     final double textScaleFactor = MediaQuery.textScalerOf(
       context,
+      // ignore: deprecated_member_use
     ).clamp(maxScaleFactor: _kMaxTextScaleFactor).textScaleFactor;
 
     final dialogSize = _calendarLandscapeDialogSize * textScaleFactor;
@@ -325,7 +327,7 @@ class _PickerState extends State<_Picker> {
 
   @override
   Widget build(BuildContext context) {
-    final Color controlColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.60);
+    final Color controlColor = Theme.of(context).colorScheme.onSurface.applyOpacity(0.60);
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return ValueListenableBuilder<MonthAndYear>(

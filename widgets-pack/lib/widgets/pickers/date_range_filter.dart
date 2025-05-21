@@ -401,7 +401,7 @@ class _Calendar extends StatelessWidget {
       borderColor: isToday ? context.colorScheme.primary : Colors.transparent,
       backgroundColor: isSelected || isRangeStart || isRangeEnd ? context.colorScheme.primary : Colors.transparent,
       textColor: isDisabled
-          ? context.colorScheme.onSurface.withOpacity(0.5)
+          ? context.colorScheme.onSurface.applyOpacity(0.5)
           : isSelected || isRangeStart || isRangeEnd
               ? context.colorScheme.onPrimary
               : isToday
@@ -463,7 +463,7 @@ class _Calendar extends StatelessWidget {
                           height: 40,
                           width: data.isBetweenRange ? 60 : 30,
                           decoration: BoxDecoration(
-                            color: context.colorScheme.primary.withOpacity(0.5),
+                            color: context.colorScheme.primary.applyOpacity(0.5),
                           ),
                         ),
                       ),

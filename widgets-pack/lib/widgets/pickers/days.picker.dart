@@ -110,7 +110,7 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
       borderColor: isToday ? context.colorScheme.primary : Colors.transparent,
       backgroundColor: isSelected || isRangeStart || isRangeEnd ? context.colorScheme.primary : Colors.transparent,
       textColor: isDisabled
-          ? context.colorScheme.onSurface.withOpacity(0.5)
+          ? context.colorScheme.onSurface.applyOpacity(0.5)
           : isSelected || isRangeStart || isRangeEnd
               ? context.colorScheme.onPrimary
               : isToday
@@ -288,7 +288,7 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
                                             height: 40,
                                             width:
                                                 data.isBetweenRange ? constraints.maxWidth : constraints.maxWidth / 2,
-                                            color: context.colorScheme.primary.withOpacity(0.5),
+                                            color: context.colorScheme.primary.applyOpacity(0.5),
                                           ),
                                         ),
                                       Container(

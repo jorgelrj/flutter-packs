@@ -56,7 +56,7 @@ class ScrollOverflowBuilderState extends State<ScrollOverflowBuilder> {
                       end: Alignment.centerLeft,
                       colors: [
                         context.colorScheme.surface,
-                        context.colorScheme.surface.withOpacity(0.5),
+                        context.colorScheme.surface.applyOpacity(0.5),
                         Colors.transparent,
                       ],
                     ),
@@ -74,7 +74,7 @@ class ScrollOverflowBuilderState extends State<ScrollOverflowBuilder> {
                     gradient: LinearGradient(
                       colors: [
                         context.colorScheme.surface,
-                        context.colorScheme.surface.withOpacity(0.5),
+                        context.colorScheme.surface.applyOpacity(0.5),
                         Colors.transparent,
                       ],
                     ),

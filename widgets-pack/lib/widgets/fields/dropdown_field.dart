@@ -476,7 +476,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
                 boxShadow: [
                   BoxShadow(
                     blurRadius: 10.0,
-                    color: Colors.black.withOpacity(0.25),
+                    color: Colors.black.applyOpacity(0.25),
                     offset: const Offset(5.0, 10.0),
                   ),
                 ],

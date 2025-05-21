@@ -72,7 +72,7 @@ class _AppTableFilterRowState extends State<AppTableFilterRow> {
                               end: Alignment.centerLeft,
                               colors: [
                                 context.colorScheme.surface,
-                                context.colorScheme.surface.withOpacity(0.5),
+                                context.colorScheme.surface.applyOpacity(0.5),
                                 Colors.transparent,
                               ],
                             ),
@@ -99,7 +99,7 @@ class _AppTableFilterRowState extends State<AppTableFilterRow> {
                             gradient: LinearGradient(
                               colors: [
                                 context.colorScheme.surface,
-                                context.colorScheme.surface.withOpacity(0.5),
+                                context.colorScheme.surface.applyOpacity(0.5),
                                 Colors.transparent,
                               ],
                             ),
