@@ -130,9 +130,9 @@ class _YoutubePlayerState extends State<_YoutubePlayer> {
 
     final videoId = getYoutubeIdRegex(widget.videoUrl);
 
-    controller = YoutubePlayerController.fromVideoId(
-      videoId: videoId!,
-      autoPlay: widget.autoPlay,
+    if (videoId == null) return;
+
+    controller = YoutubePlayerController(
       params: YoutubePlayerParams(
         loop: true,
         strictRelatedVideos: true,
@@ -140,6 +140,12 @@ class _YoutubePlayerState extends State<_YoutubePlayer> {
         mute: widget.muted,
       ),
     );
+
+    if (widget.autoPlay) {
+      controller.loadVideoById(videoId: videoId);
+    } else {
+      controller.cueVideoById(videoId: videoId);
+    }
   }
 
   static String? getYoutubeIdRegex(String url) {
