@@ -1,5 +1,8 @@
-analyzer:
+formatter:
+  page_width: 120
+  trailing_commas: preserve
 
+analyzer:
   errors:
     avoid_dynamic_calls: warning
     body_might_complete_normally_nullable: ignore
@@ -7,11 +10,13 @@ analyzer:
     depend_on_referenced_packages: ignore
     deprecated_member_use: info
     library_private_types_in_public_api: ignore
+    todo: ignore
     undefined_prefixed_name: ignore
 
   exclude:
-    - 'lib/generated_plugin_registrant.dart'
-    - 'lib/**.g.dart'
+    - "lib/generated_plugin_registrant.dart"
+    - "**/*.g.dart"
+    - "**/*.gr.dart"
 
 linter:
   rules:
