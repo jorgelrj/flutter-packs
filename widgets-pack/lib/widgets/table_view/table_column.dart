@@ -105,7 +105,7 @@ class TextColumn<M extends Object> extends TableColumn<M> {
 
 class NumberColumn<M extends Object> extends TableColumn<M> {
   final num? Function(M model) value;
-  final String? Function(num)? format;
+  final String? Function(M model, num value)? format;
   final int? maxLines;
 
   const NumberColumn({
@@ -127,14 +127,19 @@ class NumberColumn<M extends Object> extends TableColumn<M> {
         maxLines,
       ];
 
+  String _format(M model, num value) {
+    return format?.call(model, value) ?? value.toString();
+  }
+
   @override
   Widget _builder(
     BuildContext context,
     M model,
   ) {
     final numericValue = value(model);
+    final placeholder = nullValuePlaceholder;
 
-    final stringValue = numericValue != null ? format?.call(numericValue) ?? numericValue.toString() : '-';
+    final stringValue = numericValue != null ? _format(model, numericValue) : placeholder;
 
     return Text(
       stringValue,

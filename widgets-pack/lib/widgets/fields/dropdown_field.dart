@@ -45,6 +45,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final bool openAsBottomSheet;
   final ValueChanged<bool>? onFocusChanged;
   final Widget? Function(T)? prefixBuilder;
+  final bool keepTextOnItemChange;
 
   const AppDropDownFormField({
     required this.fetcher,
@@ -87,6 +88,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
     this.openAsBottomSheet = false,
     this.onFocusChanged,
     this.prefixBuilder,
+    this.keepTextOnItemChange = false,
     super.key,
   });
 
@@ -301,10 +303,8 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
       useSafeArea: true,
       routeSettings: const RouteSettings(name: 'AppDropDownBottomSheet'),
       builder: (context) {
-        _search('', fromInputChange: true);
-
         return _BottomSheetContent(
-          onTextChanged: (value) => _search(value, fromInputChange: true),
+          onTextChanged: _search,
           itemsList: _itemsListBuilder(),
           labelText: widget.labelText,
           hintText: widget.hintText,
@@ -427,7 +427,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
     final items = _selectedItemNotifier.value;
 
     if (items.isEmpty || !widget.updateTextOnChanged) {
-      _textController.clear();
+      if (!widget.keepTextOnItemChange) _textController.clear();
     } else {
       final text = switch (widget.handler) {
         AppSingleItemHandler<T>() => widget.handler.asString(items.first),
@@ -719,6 +719,8 @@ class _BottomSheetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    onTextChanged('');
+
     return AnimatedContainer(
       padding: MediaQuery.of(context).viewInsets,
       duration: const Duration(milliseconds: 150),

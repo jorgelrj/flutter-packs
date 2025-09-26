@@ -267,41 +267,45 @@ class _AppDaysPickerState extends State<AppDaysPicker> {
                               ).color(data.textColor),
                             );
 
-                            return InkWell(
-                              key: ValueKey(date),
-                              onTap: () => _onChangeDate(date),
-                              child: TooltipVisibility(
-                                visible: tooltip.isNotBlank,
-                                child: Tooltip(
-                                  message: tooltip ?? '',
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      if (data.isRangeStart || data.isRangeEnd || data.isBetweenRange)
-                                        Align(
-                                          alignment: data.isBetweenRange
-                                              ? Alignment.center
-                                              : data.isRangeStart
-                                                  ? Alignment.centerRight
-                                                  : Alignment.centerLeft,
-                                          child: Container(
-                                            height: 40,
-                                            width:
-                                                data.isBetweenRange ? constraints.maxWidth : constraints.maxWidth / 2,
-                                            color: context.colorScheme.primary.applyOpacity(0.5),
+                            return MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                key: ValueKey(date),
+                                behavior: HitTestBehavior.translucent,
+                                onTap: () => _onChangeDate(date),
+                                child: TooltipVisibility(
+                                  visible: tooltip.isNotBlank,
+                                  child: Tooltip(
+                                    message: tooltip ?? '',
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        if (data.isRangeStart || data.isRangeEnd || data.isBetweenRange)
+                                          Align(
+                                            alignment: data.isBetweenRange
+                                                ? Alignment.center
+                                                : data.isRangeStart
+                                                    ? Alignment.centerRight
+                                                    : Alignment.centerLeft,
+                                            child: Container(
+                                              height: 40,
+                                              width:
+                                                  data.isBetweenRange ? constraints.maxWidth : constraints.maxWidth / 2,
+                                              color: context.colorScheme.primary.applyOpacity(0.5),
+                                            ),
                                           ),
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: data.borderColor),
+                                            color: data.backgroundColor,
+                                          ),
+                                          child: widget.dayBuilder?.call(child, date) ?? child,
                                         ),
-                                      Container(
-                                        width: 40,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(color: data.borderColor),
-                                          color: data.backgroundColor,
-                                        ),
-                                        child: widget.dayBuilder?.call(child, date) ?? child,
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),

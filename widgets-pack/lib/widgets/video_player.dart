@@ -138,6 +138,7 @@ class _YoutubePlayerState extends State<_YoutubePlayer> {
         strictRelatedVideos: true,
         showVideoAnnotations: false,
         mute: widget.muted,
+        origin: 'https://www.youtube-nocookie.com',
       ),
     );
 
