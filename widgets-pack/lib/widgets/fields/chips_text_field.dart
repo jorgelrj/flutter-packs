@@ -11,6 +11,7 @@ abstract class AppChipsTextField<T> extends StatefulWidget {
   final VoidCallback? onDisabledTap;
   final List<TextInputFormatter>? inputFormatters;
   final FormFieldValidator<T>? validator;
+  final bool Function(T a, T b)? itemComparator;
 
   const AppChipsTextField({
     super.key,
@@ -21,6 +22,7 @@ abstract class AppChipsTextField<T> extends StatefulWidget {
     this.onDisabledTap,
     this.inputFormatters,
     this.validator,
+    this.itemComparator,
   });
 
   static AppChipsTextField<String> text({
@@ -32,6 +34,7 @@ abstract class AppChipsTextField<T> extends StatefulWidget {
     VoidCallback? onDisabledTap,
     List<TextInputFormatter>? inputFormatters,
     FormFieldValidator<String>? validator,
+    bool Function(String a, String b)? itemComparator,
     bool showAddButton = false,
   }) {
     return _TextOnlyContent(
@@ -43,6 +46,7 @@ abstract class AppChipsTextField<T> extends StatefulWidget {
       onDisabledTap: onDisabledTap,
       inputFormatters: inputFormatters,
       validator: validator,
+      itemComparator: itemComparator,
       showAddButton: showAddButton,
     );
   }
@@ -56,6 +60,7 @@ abstract class AppChipsTextField<T> extends StatefulWidget {
     ValueChanged<List<T>>? onChanged,
     VoidCallback? onDisabledTap,
     List<TextInputFormatter>? inputFormatters,
+    bool Function(T a, T b)? itemComparator,
   }) {
     return _DropdownContent<T>(
       itemsFetcher: itemsFetcher,
@@ -66,6 +71,7 @@ abstract class AppChipsTextField<T> extends StatefulWidget {
       onChanged: onChanged,
       onDisabledTap: onDisabledTap,
       inputFormatters: inputFormatters,
+      itemComparator: itemComparator,
     );
   }
 
@@ -94,8 +100,23 @@ abstract class _AppChipsTextFieldState<T> extends State<AppChipsTextField<T>> {
   void _handleItem(T item) {
     final items = List.of(_chipItemsNotifier.value);
 
-    if (items.contains(item)) {
-      items.remove(item);
+    late final bool itemExists;
+    if (widget.itemComparator != null) {
+      itemExists = items.any(
+        (existingItem) => widget.itemComparator!(existingItem, item),
+      );
+    } else {
+      itemExists = items.contains(item);
+    }
+
+    if (itemExists) {
+      if (widget.itemComparator != null) {
+        items.removeWhere(
+          (existingItem) => widget.itemComparator!(existingItem, item),
+        );
+      } else {
+        items.remove(item);
+      }
     } else {
       items.add(item);
     }
@@ -135,15 +156,13 @@ abstract class _AppChipsTextFieldState<T> extends State<AppChipsTextField<T>> {
 
   @override
   Widget build(BuildContext context) {
-    const border = OutlineInputBorder(
-      borderSide: BorderSide.none,
-    );
+    const border = OutlineInputBorder(borderSide: BorderSide.none);
 
     return Theme(
       data: Theme.of(context).copyWith(
-        inputDecorationTheme: Theme.of(context).inputDecorationTheme.copyWith(
-              disabledBorder: border,
-            ),
+        inputDecorationTheme: Theme.of(
+          context,
+        ).inputDecorationTheme.copyWith(disabledBorder: border),
       ),
       child: GestureDetector(
         onTap: () {
@@ -187,22 +206,20 @@ abstract class _AppChipsTextFieldState<T> extends State<AppChipsTextField<T>> {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            ...items.map(
-                              (item) {
-                                return AppChip(
-                                  label: item.toString(),
-                                  onDelete: () {
-                                    _handleItem(item);
-                                    _textFocusNode.requestFocus();
-                                  },
-                                  selected: true,
-                                  borderRadius: BorderRadius.circular(25),
-                                  backgroundColor: context.colorScheme.onSecondaryContainer,
-                                  onBackgroundColor: context.colorScheme.secondaryContainer,
-                                  checkIcon: Icons.check_circle,
-                                );
-                              },
-                            ),
+                            ...items.map((item) {
+                              return AppChip(
+                                label: item.toString(),
+                                onDelete: () {
+                                  _handleItem(item);
+                                  _textFocusNode.requestFocus();
+                                },
+                                selected: true,
+                                borderRadius: BorderRadius.circular(25),
+                                backgroundColor: context.colorScheme.onSecondaryContainer,
+                                onBackgroundColor: context.colorScheme.secondaryContainer,
+                                checkIcon: Icons.check_circle,
+                              );
+                            }),
                             IntrinsicWidth(
                               child: Container(
                                 padding: _inputPadding,
@@ -236,9 +253,7 @@ abstract class _AppChipsTextFieldState<T> extends State<AppChipsTextField<T>> {
                   return const SizedBox();
                 }
 
-                return BodySmall(
-                  error,
-                ).color(context.colorScheme.error);
+                return BodySmall(error).color(context.colorScheme.error);
               },
             ),
           ],
@@ -260,6 +275,7 @@ class _TextOnlyContent extends AppChipsTextField<String> {
     super.onDisabledTap,
     super.inputFormatters,
     super.validator,
+    super.itemComparator,
     this.showAddButton = false,
   });
 
@@ -349,7 +365,9 @@ class _TextOnlyContentState extends _AppChipsTextFieldState<String> {
                       child: AppButton.icon(
                         tooltip: 'Click enter/comma to add',
                         onPressed: () {
-                          final error = widget.validator?.call(_textController.text);
+                          final error = widget.validator?.call(
+                            _textController.text,
+                          );
 
                           if (error == null) {
                             _handleItem(_textController.text);
@@ -388,6 +406,7 @@ class _DropdownContent<T> extends AppChipsTextField<T> {
     super.onChanged,
     super.onDisabledTap,
     super.inputFormatters,
+    super.itemComparator,
   });
 
   @override
@@ -476,9 +495,7 @@ class _DropdownContentState<T> extends _AppChipsTextFieldState<T> {
 
   @override
   void _textControllerListener() {
-    _searchDebouncer.run(
-      () => _search(_textController.text),
-    );
+    _searchDebouncer.run(() => _search(_textController.text));
     _overlayEntry.markNeedsBuild();
   }
 
