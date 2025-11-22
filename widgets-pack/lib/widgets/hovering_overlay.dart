@@ -32,7 +32,8 @@ class _AppOverlayBuilderState extends State<AppOverlayBuilder> {
     return InkWell(
       key: _chipKey,
       onTap: _overlayController.toggle,
-      child: OverlayPortal.targetsRootOverlay(
+      child: OverlayPortal(
+        overlayLocation: .rootOverlay,
         controller: _overlayController,
         overlayChildBuilder: (context) {
           final renderBox = _chipKey.currentContext?.findRenderObject() as RenderBox;

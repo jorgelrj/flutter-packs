@@ -127,7 +127,8 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
 
   @override
   Widget build(BuildContext context) {
-    return OverlayPortal.targetsRootOverlay(
+    return OverlayPortal(
+      overlayLocation: .rootOverlay,
       controller: _overlayController,
       overlayChildBuilder: (context) {
         final position = _getOffset();
@@ -382,7 +383,8 @@ class _Calendar extends StatelessWidget {
     bool isRangeEnd,
     bool isBetweenRange,
     bool disabled,
-  }) _dateData(BuildContext context, Date date) {
+  })
+  _dateData(BuildContext context, Date date) {
     final isSelected = selectedRange == null && (selectedFirstDate == date);
     final isToday = date.isToday;
 
@@ -403,10 +405,10 @@ class _Calendar extends StatelessWidget {
       textColor: isDisabled
           ? context.colorScheme.onSurface.applyOpacity(0.5)
           : isSelected || isRangeStart || isRangeEnd
-              ? context.colorScheme.onPrimary
-              : isToday
-                  ? context.colorScheme.primary
-                  : context.colorScheme.onSurface,
+          ? context.colorScheme.onPrimary
+          : isToday
+          ? context.colorScheme.primary
+          : context.colorScheme.onSurface,
     );
   }
 
@@ -457,8 +459,8 @@ class _Calendar extends StatelessWidget {
                         alignment: data.isBetweenRange
                             ? Alignment.center
                             : data.isRangeStart
-                                ? Alignment.centerRight
-                                : Alignment.centerLeft,
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
                         child: Container(
                           height: 40,
                           width: data.isBetweenRange ? 60 : 30,
