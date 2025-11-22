@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class SubmenuSettings {
@@ -14,8 +16,10 @@ class AppAction<M extends Object> {
   final Widget Function()? iconCallback;
   final void Function()? onPressed;
   final String? tooltip;
+  final String? disabledTooltip;
   final TextStyle? style;
   final SubmenuSettings? submenuSettings;
+  final FutureOr<bool> Function()? enabledCallback;
 
   const AppAction({
     required this.label,
@@ -23,8 +27,10 @@ class AppAction<M extends Object> {
     this.iconCallback,
     this.onPressed,
     this.tooltip,
+    this.disabledTooltip,
     this.style,
     this.submenuSettings,
+    this.enabledCallback,
   });
 }
 
@@ -69,15 +75,22 @@ extension AppActionExtension<M extends Object> on AppAction<M> {
           child: Text(group.label, style: group.style),
         ),
       final AppAction action => TooltipVisibility(
-          visible: action.tooltip != null,
-          child: Tooltip(
-            message: action.tooltip ?? action.label,
-            child: MenuItemButton(
-              onPressed: action.onPressed,
-              leadingIcon: action.iconCallback?.call() ?? action.icon,
-              closeOnActivate: action.submenuSettings?.closeOnActivate ?? true,
-              child: Text(action.label, style: action.style),
-            ),
+          visible: action.tooltip != null || action.disabledTooltip != null,
+          child: FutureBuilder(
+            future: Future.value(action.enabledCallback?.call() ?? true),
+            builder: (context, snapshot) {
+              final enabled = snapshot.data ?? false;
+
+              return Tooltip(
+                message: (enabled ? action.tooltip : action.disabledTooltip) ?? action.label,
+                child: MenuItemButton(
+                  onPressed: enabled ? action.onPressed : null,
+                  leadingIcon: action.iconCallback?.call() ?? action.icon,
+                  closeOnActivate: action.submenuSettings?.closeOnActivate ?? true,
+                  child: Text(action.label, style: action.style),
+                ),
+              );
+            },
           ),
         ),
     };

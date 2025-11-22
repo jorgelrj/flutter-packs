@@ -79,10 +79,17 @@ class AppTableActionsRow<M extends Object> extends StatelessWidget {
       );
     }
 
-    return AppButton.icon(
-      onPressed: action.onPressed,
-      tooltip: action.tooltip ?? action.label,
-      icon: action.iconCallback?.call() ?? action.icon ?? const SizedBox(),
+    return FutureBuilder(
+      future: Future.value(action.enabledCallback?.call() ?? true),
+      builder: (context, snapshot) {
+        final enabled = snapshot.data ?? false;
+
+        return AppButton.icon(
+          onPressed: enabled ? action.onPressed : null,
+          tooltip: (enabled ? action.tooltip : action.disabledTooltip) ?? action.label,
+          icon: action.iconCallback?.call() ?? action.icon ?? const SizedBox(),
+        );
+      },
     );
   }
 
