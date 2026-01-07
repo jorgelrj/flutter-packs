@@ -9,10 +9,7 @@ class DateRangeFilterOption {
   final String label;
   final DateRange range;
 
-  const DateRangeFilterOption({
-    required this.label,
-    required this.range,
-  });
+  const DateRangeFilterOption({required this.label, required this.range});
 }
 
 class AppDateRangeFilter extends StatefulWidget {
@@ -40,7 +37,10 @@ class AppDateRangeFilter extends StatefulWidget {
 class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
   late final _rangeNotifier = ValueNotifier<DateRange?>(widget.initialRange);
 
-  late final _displayNotifier = ValueNotifier<(Date?, DateRange?)>((null, widget.initialRange));
+  late final _displayNotifier = ValueNotifier<(Date?, DateRange?)>((
+    null,
+    widget.initialRange,
+  ));
 
   late final _overlayController = AppOverlayPortalController(
     onHide: () {
@@ -63,10 +63,7 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
       return 'Choose a date range';
     }
 
-    return [
-      range.start.formated(),
-      range.end.formated(),
-    ].join(' - ');
+    return [range.start.formated(), range.end.formated()].join(' - ');
   }
 
   Offset? _getOffset() {
@@ -77,14 +74,12 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
 
     final position = renderBox.localToGlobal(Offset.zero);
 
-    return Offset(
-      position.dx,
-      position.dy + renderBox.size.height + 8,
-    );
+    return Offset(position.dx, position.dy + renderBox.size.height + 8);
   }
 
   Date get _lastDate {
-    if (widget.maxRangeDurationInDays != null && _displayNotifier.value.$1 != null) {
+    if (widget.maxRangeDurationInDays != null &&
+        _displayNotifier.value.$1 != null) {
       return _displayNotifier.value.$1!.addDays(widget.maxRangeDurationInDays!);
     }
 
@@ -108,10 +103,7 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
       return;
     }
 
-    final range = DateRange(
-      start: display.$1!,
-      end: date,
-    );
+    final range = DateRange(start: display.$1!, end: date);
 
     _displayNotifier.value = (null, range);
   }
@@ -142,7 +134,10 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
           left: position.dx,
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: _kMultiContentWidth.clamp(0, context.screenSize.width - 64),
+              maxWidth: _kMultiContentWidth.clamp(
+                0,
+                context.screenSize.width - 64,
+              ),
               maxHeight: 524,
             ),
             child: TapRegion(
@@ -162,7 +157,8 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          if (context.screenSize.width > _kMultiContentWidth || !_showingCalendar)
+                          if (context.screenSize.width > _kMultiContentWidth ||
+                              !_showingCalendar)
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -185,7 +181,8 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                                       );
                                     },
                                   ),
-                                  for (final (index, option) in widget.options.indexed)
+                                  for (final (index, option)
+                                      in widget.options.indexed)
                                     ValueListenableBuilder<int>(
                                       valueListenable: _optionNotifier,
                                       builder: (context, optionIndex, child) {
@@ -194,7 +191,10 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                                           selected: index + 1 == optionIndex,
                                           onTap: () {
                                             _optionNotifier.value = index + 1;
-                                            _displayNotifier.value = (null, option.range);
+                                            _displayNotifier.value = (
+                                              null,
+                                              option.range,
+                                            );
                                             setState(() {
                                               _showingCalendar = true;
                                             });
@@ -205,18 +205,30 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                                 ],
                               ),
                             ),
-                          if (context.screenSize.width > _kMultiContentWidth) const VerticalDivider(),
-                          if (context.screenSize.width > _kMultiContentWidth || _showingCalendar)
+                          if (context.screenSize.width > _kMultiContentWidth)
+                            const VerticalDivider(),
+                          if (context.screenSize.width > _kMultiContentWidth ||
+                              _showingCalendar)
                             Expanded(
                               child: Column(
                                 children: [
                                   Padding(
                                     padding: kXSVertical,
                                     child: Row(
-                                      children: List<Widget>.generate(7, (index) {
+                                      children: List<Widget>.generate(7, (
+                                        index,
+                                      ) {
                                         return Center(
                                           child: BodyLarge(
-                                            ['S', 'M', 'T', 'W', 'T', 'F', 'S'][index],
+                                            [
+                                              'S',
+                                              'M',
+                                              'T',
+                                              'W',
+                                              'T',
+                                              'F',
+                                              'S',
+                                            ][index],
                                           ),
                                         );
                                       }).expanded(),
@@ -230,7 +242,9 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                                       slivers: [
                                         SliverList.builder(
                                           itemBuilder: (context, index) {
-                                            return ValueListenableBuilder<(Date?, DateRange?)>(
+                                            return ValueListenableBuilder<
+                                              (Date?, DateRange?)
+                                            >(
                                               valueListenable: _displayNotifier,
                                               builder: (context, display, child) {
                                                 return _Calendar(
@@ -238,10 +252,14 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                                                   selectedRange: display.$2,
                                                   firstDate: widget.startDate,
                                                   lastDate: _lastDate,
-                                                  onDateSelected: _handleDateSelected,
-                                                  monthAndYear: MonthAndYear.fromDateTime(
-                                                    DateTime.now(),
-                                                  ).subtractMonths(index + 1),
+                                                  onDateSelected:
+                                                      _handleDateSelected,
+                                                  monthAndYear:
+                                                      MonthAndYear.fromDateTime(
+                                                        DateTime.now(),
+                                                      ).subtractMonths(
+                                                        index + 1,
+                                                      ),
                                                 );
                                               },
                                             );
@@ -249,25 +267,34 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                                         ),
                                         SliverToBoxAdapter(
                                           key: _centerCalendarKey,
-                                          child: ValueListenableBuilder<(Date?, DateRange?)>(
-                                            valueListenable: _displayNotifier,
-                                            builder: (context, display, child) {
-                                              return _Calendar(
-                                                selectedFirstDate: display.$1,
-                                                selectedRange: display.$2,
-                                                firstDate: widget.startDate,
-                                                lastDate: _lastDate,
-                                                onDateSelected: _handleDateSelected,
-                                                monthAndYear: MonthAndYear.fromDateTime(
-                                                  DateTime.now(),
-                                                ),
-                                              );
-                                            },
-                                          ),
+                                          child:
+                                              ValueListenableBuilder<
+                                                (Date?, DateRange?)
+                                              >(
+                                                valueListenable:
+                                                    _displayNotifier,
+                                                builder: (context, display, child) {
+                                                  return _Calendar(
+                                                    selectedFirstDate:
+                                                        display.$1,
+                                                    selectedRange: display.$2,
+                                                    firstDate: widget.startDate,
+                                                    lastDate: _lastDate,
+                                                    onDateSelected:
+                                                        _handleDateSelected,
+                                                    monthAndYear:
+                                                        MonthAndYear.fromDateTime(
+                                                          DateTime.now(),
+                                                        ),
+                                                  );
+                                                },
+                                              ),
                                         ),
                                         SliverList.builder(
                                           itemBuilder: (context, index) {
-                                            return ValueListenableBuilder<(Date?, DateRange?)>(
+                                            return ValueListenableBuilder<
+                                              (Date?, DateRange?)
+                                            >(
                                               valueListenable: _displayNotifier,
                                               builder: (context, display, child) {
                                                 return _Calendar(
@@ -275,10 +302,12 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                                                   selectedRange: display.$2,
                                                   firstDate: widget.startDate,
                                                   lastDate: _lastDate,
-                                                  onDateSelected: _handleDateSelected,
-                                                  monthAndYear: MonthAndYear.fromDateTime(
-                                                    DateTime.now(),
-                                                  ).addMonths(index + 1),
+                                                  onDateSelected:
+                                                      _handleDateSelected,
+                                                  monthAndYear:
+                                                      MonthAndYear.fromDateTime(
+                                                        DateTime.now(),
+                                                      ).addMonths(index + 1),
                                                 );
                                               },
                                             );
@@ -299,7 +328,8 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          if (context.screenSize.width > _kMultiContentWidth || _showingCalendar) ...[
+                          if (context.screenSize.width > _kMultiContentWidth ||
+                              _showingCalendar) ...[
                             AppButton.icon(
                               onPressed: () {
                                 setState(() {
@@ -320,7 +350,9 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                               final range = display.$2;
 
                               return AppButton.text(
-                                onPressed: range != null && range != _rangeNotifier.value
+                                onPressed:
+                                    range != null &&
+                                        range != _rangeNotifier.value
                                     ? () {
                                         _rangeNotifier.value = range;
                                         widget.onChanged?.call(range);
@@ -388,12 +420,17 @@ class _Calendar extends StatelessWidget {
     final isSelected = selectedRange == null && (selectedFirstDate == date);
     final isToday = date.isToday;
 
-    final isDisabled = date != firstDate && date < firstDate || date != lastDate && date > lastDate;
+    final isDisabled =
+        date != firstDate && date < firstDate ||
+        date != lastDate && date > lastDate;
 
     final isRangeStart = selectedRange?.start == date;
     final isRangeEnd = selectedRange?.end == date;
 
-    final isBetweenRange = selectedRange != null && date > selectedRange!.start && date < selectedRange!.end;
+    final isBetweenRange =
+        selectedRange != null &&
+        date > selectedRange!.start &&
+        date < selectedRange!.end;
 
     return (
       disabled: isDisabled,
@@ -401,7 +438,9 @@ class _Calendar extends StatelessWidget {
       isRangeEnd: isRangeEnd,
       isBetweenRange: isBetweenRange,
       borderColor: isToday ? context.colorScheme.primary : Colors.transparent,
-      backgroundColor: isSelected || isRangeStart || isRangeEnd ? context.colorScheme.primary : Colors.transparent,
+      backgroundColor: isSelected || isRangeStart || isRangeEnd
+          ? context.colorScheme.primary
+          : Colors.transparent,
       textColor: isDisabled
           ? context.colorScheme.onSurface.applyOpacity(0.5)
           : isSelected || isRangeStart || isRangeEnd
@@ -454,7 +493,9 @@ class _Calendar extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    if (data.isRangeStart || data.isRangeEnd || data.isBetweenRange)
+                    if (data.isRangeStart ||
+                        data.isRangeEnd ||
+                        data.isBetweenRange)
                       Align(
                         alignment: data.isBetweenRange
                             ? Alignment.center
@@ -465,7 +506,9 @@ class _Calendar extends StatelessWidget {
                           height: 40,
                           width: data.isBetweenRange ? 60 : 30,
                           decoration: BoxDecoration(
-                            color: context.colorScheme.primary.applyOpacity(0.5),
+                            color: context.colorScheme.primary.applyOpacity(
+                              0.5,
+                            ),
                           ),
                         ),
                       ),
