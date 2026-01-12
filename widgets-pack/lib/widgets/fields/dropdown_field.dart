@@ -167,11 +167,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
     );
   }
 
-  Future<void> _search(String search, {bool fromInputChange = false}) async {
-    if (!fromInputChange) {
-      return;
-    }
-
+  Future<void> _search(String search) async {
     if (widget.minLengthForSearch != null) {
       if (search.length < widget.minLengthForSearch!) {
         return;
@@ -258,9 +254,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
   }
 
   void _textControllerListener() {
-    _searchDebouncer.run(
-      () => _search(_textController.text, fromInputChange: true),
-    );
+    _searchDebouncer.run(() => _search(_textController.text));
 
     _overlayEntry?.markNeedsBuild();
   }
@@ -304,7 +298,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
       routeSettings: const RouteSettings(name: 'AppDropDownBottomSheet'),
       builder: (context) {
         return _BottomSheetContent(
-          onTextChanged: _search,
+          onTextChanged: (text) => _textController.text = text,
           itemsList: _itemsListBuilder(),
           labelText: widget.labelText,
           hintText: widget.hintText,
@@ -329,7 +323,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
 
     _hasItemsNotifier.value = _selectedItemNotifier.value.isNotEmpty;
 
-    if (!_hasItemsNotifier.value) {
+    if (!_openAsBottomSheet && !_hasItemsNotifier.value) {
       _setTextValue();
     }
   }
@@ -431,9 +425,10 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
     } else {
       final text = switch (widget.handler) {
         AppSingleItemHandler<T>() => widget.handler.asString(items.first),
-        AppMultipleItemsHandler<T>() => items.length > 3
-            ? '${items.length} items'
-            : items.take(3).map((item) => widget.handler.asString(item)).join(', '),
+        AppMultipleItemsHandler<T>() =>
+          items.length > 3
+              ? '${items.length} items'
+              : items.take(3).map((item) => widget.handler.asString(item)).join(', '),
       };
 
       _textController.text = text;
@@ -464,12 +459,13 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
                 maxHeight: openAbove
                     ? maxHeight
                     : availableSpace > maxHeight
-                        ? maxHeight
-                        : availableSpace - 16,
+                    ? maxHeight
+                    : availableSpace - 16,
               ),
               decoration: BoxDecoration(
                 color: widget.overlayColor ?? colorScheme.surfaceContainer,
-                borderRadius: widget.overlayBorderRadius ??
+                borderRadius:
+                    widget.overlayBorderRadius ??
                     const BorderRadius.vertical(
                       bottom: Radius.circular(4),
                     ),
@@ -527,22 +523,22 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
 
                   return switch (widget.handler) {
                     (AppSingleItemHandler<T>()) => ListTile(
-                        key: ObjectKey(item),
-                        title: textWg,
-                        onTap: onTapItem,
-                        contentPadding: padding,
-                        selected: selected,
-                        leading: widget.prefixBuilder?.call(item),
-                      ),
+                      key: ObjectKey(item),
+                      title: textWg,
+                      onTap: onTapItem,
+                      contentPadding: padding,
+                      selected: selected,
+                      leading: widget.prefixBuilder?.call(item),
+                    ),
                     final AppMultipleItemsHandler<T> handler => CheckboxListTile(
-                        key: ObjectKey(item),
-                        title: textWg,
-                        value: selected,
-                        onChanged: (_) => onTapItem(),
-                        controlAffinity: handler.controlAffinity,
-                        contentPadding: padding,
-                        secondary: widget.prefixBuilder?.call(item),
-                      ),
+                      key: ObjectKey(item),
+                      title: textWg,
+                      value: selected,
+                      onChanged: (_) => onTapItem(),
+                      controlAffinity: handler.controlAffinity,
+                      contentPadding: padding,
+                      secondary: widget.prefixBuilder?.call(item),
+                    ),
                   };
                 },
               );
@@ -593,7 +589,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
             _selectedItemNotifier.value = handler.initialValue;
         }
 
-        if (!_textFocusNode.hasFocus) {
+        if (!_openAsBottomSheet && !_textFocusNode.hasFocus) {
           _setTextValue();
         }
       });
@@ -608,10 +604,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
       _itemNotifier.value = <T>[];
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _search(
-          _textController.text,
-          fromInputChange: true,
-        );
+        if (!_openAsBottomSheet) _search(_textController.text);
       });
     }
   }
@@ -656,9 +649,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
                 enabled: widget.enabled,
                 controller: _textController,
                 onFocusChanged: (focused) {
-                  if (focused) {
-                    _search(_textController.text, fromInputChange: true);
-                  }
+                  if (focused) _search(_textController.text);
 
                   widget.onFocusChanged?.call(focused);
                 },
@@ -687,13 +678,13 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
                     : null,
                 suffixIcon: widget.showTrailing && widget.updateTextOnChanged
                     ? hasItems
-                        ? widget.showClearButton
-                            ? AppButton.icon(
-                                onPressed: () => handleItem(null),
-                                icon: const Icon(Icons.close),
-                              )
-                            : const Icon(Icons.arrow_drop_down)
-                        : widget.suffixIcon ?? const Icon(Icons.arrow_drop_down)
+                          ? widget.showClearButton
+                                ? AppButton.icon(
+                                    onPressed: () => handleItem(null),
+                                    icon: const Icon(Icons.close),
+                                  )
+                                : const Icon(Icons.arrow_drop_down)
+                          : widget.suffixIcon ?? const Icon(Icons.arrow_drop_down)
                     : null,
               );
             },
@@ -704,7 +695,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
   }
 }
 
-class _BottomSheetContent extends StatelessWidget {
+class _BottomSheetContent extends StatefulWidget {
   final ValueChanged<String> onTextChanged;
   final String? labelText;
   final String? hintText;
@@ -718,9 +709,21 @@ class _BottomSheetContent extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    onTextChanged('');
+  State<_BottomSheetContent> createState() => _BottomSheetContentState();
+}
 
+class _BottomSheetContentState extends State<_BottomSheetContent> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onTextChanged('');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AnimatedContainer(
       padding: MediaQuery.of(context).viewInsets,
       duration: const Duration(milliseconds: 150),
@@ -731,9 +734,9 @@ class _BottomSheetContent extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           AppTextFormField(
-            labelText: labelText,
-            hintText: hintText,
-            onChanged: onTextChanged,
+            labelText: widget.labelText,
+            hintText: widget.hintText,
+            onChanged: widget.onTextChanged,
             prefixIcon: const Icon(Icons.search),
             border: OutlineInputBorder(
               borderRadius: const BorderRadius.all(Radius.circular(24)),
@@ -745,7 +748,7 @@ class _BottomSheetContent extends StatelessWidget {
           Flexible(
             child: TextFieldTapRegion(
               groupId: AppTextFormField.tapRegionGroupId,
-              child: itemsList,
+              child: widget.itemsList,
             ),
           ),
         ],
