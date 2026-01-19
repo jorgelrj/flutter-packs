@@ -129,6 +129,8 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
           return const SizedBox();
         }
 
+        final availableHeight = context.screenSize.height - position.dy - 16;
+
         return Positioned(
           top: position.dy,
           left: position.dx,
@@ -138,7 +140,7 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                 0,
                 context.screenSize.width - 64,
               ),
-              maxHeight: 524,
+              maxHeight: availableHeight.clamp(200, 524),
             ),
             child: TapRegion(
               onTapOutside: (_) => _overlayController.hide(),
@@ -160,41 +162,21 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                           if (context.screenSize.width > _kMultiContentWidth ||
                               !_showingCalendar)
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  ValueListenableBuilder<int>(
-                                    valueListenable: _optionNotifier,
-                                    builder: (context, option, child) {
-                                      return ListTile(
-                                        title: const Text('Custom'),
-                                        trailing: const Icon(Icons.arrow_right),
-                                        selected: option == 0,
-                                        onTap: () {
-                                          _optionNotifier.value = 0;
-                                          _displayNotifier.value = (null, null);
-                                          setState(() {
-                                            _showingCalendar = true;
-                                          });
-                                        },
-                                      );
-                                    },
-                                  ),
-                                  for (final (index, option)
-                                      in widget.options.indexed)
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
                                     ValueListenableBuilder<int>(
                                       valueListenable: _optionNotifier,
-                                      builder: (context, optionIndex, child) {
+                                      builder: (context, option, child) {
                                         return ListTile(
-                                          title: Text(option.label),
-                                          selected: index + 1 == optionIndex,
+                                          title: const Text('Custom'),
+                                          trailing: const Icon(Icons.arrow_right),
+                                          selected: option == 0,
                                           onTap: () {
-                                            _optionNotifier.value = index + 1;
-                                            _displayNotifier.value = (
-                                              null,
-                                              option.range,
-                                            );
+                                            _optionNotifier.value = 0;
+                                            _displayNotifier.value = (null, null);
                                             setState(() {
                                               _showingCalendar = true;
                                             });
@@ -202,7 +184,29 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
                                         );
                                       },
                                     ),
-                                ],
+                                    for (final (index, option)
+                                        in widget.options.indexed)
+                                      ValueListenableBuilder<int>(
+                                        valueListenable: _optionNotifier,
+                                        builder: (context, optionIndex, child) {
+                                          return ListTile(
+                                            title: Text(option.label),
+                                            selected: index + 1 == optionIndex,
+                                            onTap: () {
+                                              _optionNotifier.value = index + 1;
+                                              _displayNotifier.value = (
+                                                null,
+                                                option.range,
+                                              );
+                                              setState(() {
+                                                _showingCalendar = true;
+                                              });
+                                            },
+                                          );
+                                        },
+                                      ),
+                                  ],
+                                ),
                               ),
                             ),
                           if (context.screenSize.width > _kMultiContentWidth)
