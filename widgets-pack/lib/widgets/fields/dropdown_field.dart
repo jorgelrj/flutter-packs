@@ -3,6 +3,26 @@ import 'dart:async';
 import 'package:extensions_pack/extensions_pack.dart';
 import 'package:flutter/material.dart';
 import 'package:widgets_pack/widgets_pack.dart';
+import 'package:equatable/equatable.dart';
+
+final class TileBuilderData<T extends Object> extends Equatable {
+  final T model;
+  final int selectionIndex;
+  final VoidCallback onSelect;
+
+  const TileBuilderData({
+    required this.model,
+    required this.selectionIndex,
+    required this.onSelect,
+  });
+
+  @override
+  List<Object?> get props => [model, selectionIndex];
+
+  bool get isSelected => selectionIndex >= 0;
+
+  (T, bool, VoidCallback) get asTuple => (model, isSelected, onSelect);
+}
 
 class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final AppItemsFetcher<T> fetcher;
@@ -20,7 +40,7 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   final EdgeInsets? tilesContentPadding;
   final bool showTrailing;
   final AppTextFormFieldErrorType errorType;
-  final Widget Function(T item, bool selected, VoidCallback onTap)? tileBuilder;
+  final Widget Function(TileBuilderData<T>)? tileBuilder;
   final bool enabled;
   final bool updateTextOnChanged;
   final bool? filled;
@@ -93,10 +113,12 @@ class AppDropDownFormField<T extends Object> extends StatefulWidget {
   });
 
   @override
-  State<AppDropDownFormField<T>> createState() => AppDropDownFormFieldState<T>();
+  State<AppDropDownFormField<T>> createState() =>
+      AppDropDownFormFieldState<T>();
 }
 
-class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormField<T>> {
+class AppDropDownFormFieldState<T extends Object>
+    extends State<AppDropDownFormField<T>> {
   final _widgetKey = GlobalKey();
 
   RenderBox? get _renderBox {
@@ -123,7 +145,8 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
 
   late final _selectedItemNotifier = ValueNotifier<List<T>>(
     switch (widget.handler) {
-      final AppSingleItemHandler<T> handler => [handler.initialValue].nonNulls.toList(),
+      final AppSingleItemHandler<T> handler =>
+          [handler.initialValue].nonNulls.toList(),
       final AppMultipleItemsHandler<T> handler => handler.initialValue,
     },
   );
@@ -335,16 +358,21 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
       return;
     }
 
-    final barrierColor = widget.barrierColor ?? context.wpWidgetsConfig.dropdownInput?.barrierColor;
+    final barrierColor = widget.barrierColor ??
+        context.wpWidgetsConfig.dropdownInput?.barrierColor;
 
     _overlayEntry ??= OverlayEntry(
       maintainState: true,
       canSizeOverlay: true,
       builder: (context) {
         const maxHeight = 200.0;
-        final widgetPosition = _renderBox?.localToGlobal(Offset.zero) ?? Offset.zero;
+        final widgetPosition = _renderBox?.localToGlobal(Offset.zero) ??
+            Offset.zero;
         final widgetSize = _widgetSize ?? Size.zero;
-        final availableSpace = MediaQuery.of(context).size.height - widgetPosition.dy - widgetSize.height;
+        final availableSpace = MediaQuery
+            .of(context)
+            .size
+            .height - widgetPosition.dy - widgetSize.height;
 
         final openAbove = availableSpace < 128;
 
@@ -360,7 +388,8 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
               width: widgetSize.width,
               child: CompositedTransformFollower(
                 link: _layerLink,
-                targetAnchor: openAbove ? Alignment.topLeft : Alignment.bottomLeft,
+                targetAnchor: openAbove ? Alignment.topLeft : Alignment
+                    .bottomLeft,
                 offset: Offset(0, openAbove ? -widgetSize.height : 0),
                 showWhenUnlinked: false,
                 child: Material(
@@ -406,7 +435,8 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
       } else {
         if (widget.handler is AppMultipleItemsHandler<T> &&
             (widget.handler as AppMultipleItemsHandler<T>).maxItems != null &&
-            items.length >= (widget.handler as AppMultipleItemsHandler<T>).maxItems!) {
+            items.length >=
+                (widget.handler as AppMultipleItemsHandler<T>).maxItems!) {
           return;
         }
 
@@ -426,9 +456,10 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
       final text = switch (widget.handler) {
         AppSingleItemHandler<T>() => widget.handler.asString(items.first),
         AppMultipleItemsHandler<T>() =>
-          items.length > 3
-              ? '${items.length} items'
-              : items.take(3).map((item) => widget.handler.asString(item)).join(', '),
+        items.length > 3
+            ? '${items.length} items'
+            : items.take(3).map((item) => widget.handler.asString(item)).join(
+            ', '),
       };
 
       _textController.text = text;
@@ -450,7 +481,8 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (_loading) widget.loadingBuilder?.call(context) ?? const LinearProgressIndicator(),
+        if (_loading) widget.loadingBuilder?.call(context) ??
+            const LinearProgressIndicator(),
         Flexible(
           child: TextFieldTapRegion(
             child: Container(
@@ -465,7 +497,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
               decoration: BoxDecoration(
                 color: widget.overlayColor ?? colorScheme.surfaceContainer,
                 borderRadius:
-                    widget.overlayBorderRadius ??
+                widget.overlayBorderRadius ??
                     const BorderRadius.vertical(
                       bottom: Radius.circular(4),
                     ),
@@ -508,9 +540,11 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
               return ListenableBuilder(
                 listenable: _selectedItemNotifier,
                 builder: (context, child) {
-                  final selected = _selectedItemNotifier.value.any((selected) {
+                  final selectedIndex = _selectedItemNotifier.value.indexWhere((
+                      selected) {
                     return widget.handler.compare(selected, item);
                   });
+                  final selected = selectedIndex >= 0;
 
                   void onTapItem() => handleItem(item);
 
@@ -518,27 +552,35 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
                   final padding = widget.tilesContentPadding;
 
                   if (widget.tileBuilder != null) {
-                    return widget.tileBuilder!(item, selected, onTapItem);
+                    return widget.tileBuilder!(
+                      TileBuilderData(
+                        model: item,
+                        selectionIndex: selectedIndex,
+                        onSelect: onTapItem,
+                      ),
+                    );
                   }
 
                   return switch (widget.handler) {
-                    (AppSingleItemHandler<T>()) => ListTile(
-                      key: ObjectKey(item),
-                      title: textWg,
-                      onTap: onTapItem,
-                      contentPadding: padding,
-                      selected: selected,
-                      leading: widget.prefixBuilder?.call(item),
-                    ),
-                    final AppMultipleItemsHandler<T> handler => CheckboxListTile(
-                      key: ObjectKey(item),
-                      title: textWg,
-                      value: selected,
-                      onChanged: (_) => onTapItem(),
-                      controlAffinity: handler.controlAffinity,
-                      contentPadding: padding,
-                      secondary: widget.prefixBuilder?.call(item),
-                    ),
+                    (AppSingleItemHandler<T>()) =>
+                        ListTile(
+                          key: ObjectKey(item),
+                          title: textWg,
+                          onTap: onTapItem,
+                          contentPadding: padding,
+                          selected: selected,
+                          leading: widget.prefixBuilder?.call(item),
+                        ),
+                    final AppMultipleItemsHandler<T> handler =>
+                        CheckboxListTile(
+                          key: ObjectKey(item),
+                          title: textWg,
+                          value: selected,
+                          onChanged: (_) => onTapItem(),
+                          controlAffinity: handler.controlAffinity,
+                          contentPadding: padding,
+                          secondary: widget.prefixBuilder?.call(item),
+                        ),
                   };
                 },
               );
@@ -558,7 +600,7 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
     _selectedItemNotifier.addListener(_onItemsChange);
 
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _afterLayout(),
+          (_) => _afterLayout(),
     );
   }
 
@@ -573,7 +615,8 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
             final currentItem = _selectedItemNotifier.value.firstOrNull;
             final handlerItem = handler.initialValue;
 
-            if (handlerItem != null && currentItem != null && !handler.compare(currentItem, handlerItem)) {
+            if (handlerItem != null && currentItem != null &&
+                !handler.compare(currentItem, handlerItem)) {
               _selectedItemNotifier.value = [handlerItem];
             }
 
@@ -582,7 +625,8 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
             }
 
             if (currentItem == null) {
-              _selectedItemNotifier.value = handlerItem != null ? [handlerItem] : [];
+              _selectedItemNotifier.value =
+              handlerItem != null ? [handlerItem] : [];
             }
 
           case final AppMultipleItemsHandler<T> handler:
@@ -659,8 +703,11 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
                 labelStyle: widget.labelStyle,
                 style: widget.style,
                 hintText: widget.hintText,
-                border: showing ? (widget.overlayOpenBorder ?? widget.border) : widget.border,
-                focusedBorder: showing ? widget.overlayOpenBorder ?? widget.focusedBorder : widget.focusedBorder,
+                border: showing
+                    ? (widget.overlayOpenBorder ?? widget.border)
+                    : widget.border,
+                focusedBorder: showing ? widget.overlayOpenBorder ??
+                    widget.focusedBorder : widget.focusedBorder,
                 errorBorder: widget.errorBorder,
                 errorType: widget.errorType,
                 contentPadding: widget.inputContentPadding,
@@ -671,20 +718,20 @@ class AppDropDownFormFieldState<T extends Object> extends State<AppDropDownFormF
                 readOnly: widget.readOnly,
                 validator: widget.validator != null
                     ? (_) {
-                        return widget.validator!.validate(
-                          _selectedItemNotifier.value,
-                        );
-                      }
+                  return widget.validator!.validate(
+                    _selectedItemNotifier.value,
+                  );
+                }
                     : null,
                 suffixIcon: widget.showTrailing && widget.updateTextOnChanged
                     ? hasItems
-                          ? widget.showClearButton
-                                ? AppButton.icon(
-                                    onPressed: () => handleItem(null),
-                                    icon: const Icon(Icons.close),
-                                  )
-                                : const Icon(Icons.arrow_drop_down)
-                          : widget.suffixIcon ?? const Icon(Icons.arrow_drop_down)
+                    ? widget.showClearButton
+                    ? AppButton.icon(
+                  onPressed: () => handleItem(null),
+                  icon: const Icon(Icons.close),
+                )
+                    : const Icon(Icons.arrow_drop_down)
+                    : widget.suffixIcon ?? const Icon(Icons.arrow_drop_down)
                     : null,
               );
             },
@@ -725,7 +772,9 @@ class _BottomSheetContentState extends State<_BottomSheetContent> {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      padding: MediaQuery.of(context).viewInsets,
+      padding: MediaQuery
+          .of(context)
+          .viewInsets,
       duration: const Duration(milliseconds: 150),
       constraints: BoxConstraints(
         minHeight: context.screenSize.height * 0.5,
@@ -740,7 +789,8 @@ class _BottomSheetContentState extends State<_BottomSheetContent> {
             prefixIcon: const Icon(Icons.search),
             border: OutlineInputBorder(
               borderRadius: const BorderRadius.all(Radius.circular(24)),
-              borderSide: BorderSide(color: context.colorScheme.surfaceContainerHigh),
+              borderSide: BorderSide(
+                  color: context.colorScheme.surfaceContainerHigh),
             ),
             fillColor: context.colorScheme.surfaceContainerHigh,
             filled: true,
