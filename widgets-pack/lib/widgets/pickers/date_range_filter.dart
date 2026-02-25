@@ -131,15 +131,16 @@ class _AppDateRangeFilterState extends State<AppDateRangeFilter> {
 
         final availableHeight = context.screenSize.height - position.dy - 16;
 
+        final screenWidth = context.screenSize.width;
+        final maxWidth = _kMultiContentWidth.clamp(0.0, screenWidth - 64);
+        final left = position.dx.clamp(32.0, screenWidth - maxWidth - 32);
+
         return Positioned(
           top: position.dy,
-          left: position.dx,
+          left: left,
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: _kMultiContentWidth.clamp(
-                0,
-                context.screenSize.width - 64,
-              ),
+              maxWidth: maxWidth,
               maxHeight: availableHeight.clamp(200, 524),
             ),
             child: TapRegion(
